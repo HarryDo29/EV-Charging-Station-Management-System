@@ -1,0 +1,42 @@
+import { Role } from 'src/enums/role.enum';
+import { IAccount } from '../interface/account.interface';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+
+@Entity('accounts')
+export class AccountEntity implements IAccount {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  full_name: string;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column()
+  phone_number: string;
+
+  @Column()
+  password_hash: string;
+
+  @Column({ type: 'enum', enum: Role, default: Role.DRIVER })
+  role: Role;
+
+  @Column({ default: false })
+  is_verified: boolean;
+
+  @Column({ default: true })
+  is_active: boolean;
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
+}
