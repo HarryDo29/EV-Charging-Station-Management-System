@@ -26,6 +26,26 @@ export class AccountService {
     return this.accountRepository.save(newAccount);
   }
 
+  async findAccountByEmail(email: string): Promise<AccountEntity> {
+    const acc = await this.accountRepository.findOne({
+      where: { email },
+    });
+    if (!acc) {
+      throw new NotFoundException('Account not found');
+    }
+    return acc;
+  }
+
+  async findAccountById(id: string): Promise<AccountEntity> {
+    const acc = await this.accountRepository.findOne({
+      where: { id },
+    });
+    if (!acc) {
+      throw new NotFoundException('Account not found');
+    }
+    return acc;
+  }
+
   async updateAccount(
     id: string,
     account: UpdateAccountDto,

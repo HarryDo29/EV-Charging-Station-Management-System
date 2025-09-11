@@ -1,4 +1,4 @@
-import { Controller, Body, Put, Delete, Param } from '@nestjs/common';
+import { Controller, Body, Put, Param } from '@nestjs/common';
 import { AccountService } from './account.service';
 // import { CreateAccountDto } from './dto/createdAccount.dto';
 import { UpdateAccountDto } from './dto/updatedAccount.dto';
@@ -17,8 +17,8 @@ export class AccountController {
     return this.accountService.updateAccount(id, account);
   }
 
-  @Delete('/delete/:id')
-  deleteAccount(@Param('id') id: string) {
-    return this.accountService.deleteAccount(id);
-  }
+  // @Delete('/delete/:id')
+  // deleteAccount(@Param('id') id: string) {
+  //   return this.accountService.deleteAccount(id);
+  // }
 }

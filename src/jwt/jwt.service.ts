@@ -13,8 +13,13 @@ export class JwtCustomService {
       secret: this.configService.get<string>('SECRET_KEY_REFRESH_TOKEN'),
       expiresIn: this.configService.get<string>('EXPIRED_IN_REFRESH_TOKEN'),
     };
+    this.emailTokenOptions = {
+      secret: this.configService.get<string>('SECRET_KEY_EMAIL_TOKEN'),
+      expiresIn: this.configService.get<string>('EXPIRED_IN_EMAIL_TOKEN'),
+    };
   }
   private rfTokenOptions: JwtSignOptions;
+  private emailTokenOptions: JwtSignOptions;
 
   // Hàm tạo access token (mặc định là kí cho access token)
   sign(payload: object, options?: JwtSignOptions): string {
@@ -34,5 +39,15 @@ export class JwtCustomService {
   // Hàm xác thực refresh token
   verifyRefreshToken(token: string): object {
     return this.jwtService.verify(token, this.rfTokenOptions);
+  }
+
+  // Hàm kí email token
+  signEmailToken(payload: object): string {
+    return this.jwtService.sign(payload, this.emailTokenOptions);
+  }
+
+  // Hàm xác thực email token
+  verifyEmailToken(token: string): object {
+    return this.jwtService.verify(token, this.emailTokenOptions);
   }
 }
