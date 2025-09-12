@@ -9,10 +9,10 @@ async function bootstrap() {
   // --- BẮT ĐẦU PHẦN CẤU HÌNH SWAGGER ---
 
   const config = new DocumentBuilder()
-    .setTitle('API Documentation') // Tiêu đề của API
+    .setTitle('EV Charger System API Documentation') // Tiêu đề của API
     .setDescription('The API description') // Mô tả
     .setVersion('1.0') // Phiên bản
-    .addTag('api') // Thêm tag để gom nhóm API
+    // .addTag('api') // Thêm tag để gom nhóm API
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

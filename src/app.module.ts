@@ -6,6 +6,8 @@ import databaseConfig from './config/database.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RedisModule } from './redis/redis.module';
 import redisConfig from './config/redis.config';
+import { AuthModule } from './auth/auth.module';
+import { AccountModule } from './account/account.module';
 
 @Module({
   imports: [
@@ -21,6 +23,13 @@ import redisConfig from './config/redis.config';
       // Lấy toàn bộ cấu hình có namespace 'database'
     }),
     RedisModule,
+    AuthModule,
+    AccountModule,
+    // Argon2Module,
+    // JwtModule,
+    // RedisModule,
+    // RefreshTokenModule,
+    // MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
