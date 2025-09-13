@@ -8,13 +8,6 @@ import { UpdateAccountDto } from './dto/updatedAccount.dto';
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
-  //   @Post('/register')
-  //   createAccount(@Body() account: CreateAccountDto) {
-  //     return this.accountService.createAccount(account);
-  //   }
-
-  // @ApiTags('Account')
-  // @ApiOperation({ summary: 'Update an account' })
   @Put('/update/:id')
   updateAccount(@Param('id') id: string, @Body() account: UpdateAccountDto) {
     return this.accountService.updateAccount(id, account);

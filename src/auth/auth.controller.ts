@@ -1,41 +1,45 @@
-import { Controller, Post, Body, Headers } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { RegisterDto } from './dto/registerAccount.dto';
+import { LoginDto } from './dto/loginAccount.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { AccountService } from 'src/account/account.service';
+import { AuthenticatedUserDto } from './dto/authenticated-user.dto';
+import type { Request as RequestExpress } from 'express';
+// import { Request as RequestNest } from '@nestjs/common';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly accountService: AccountService,
+  ) {}
 
-  @ApiOperation({ summary: 'Register a new account' })
-  @ApiResponse({ status: 201, description: 'Register a new account' })
-  @ApiResponse({ status: 400, description: 'Account already exists' })
   @Post('register')
-  async register(
-    @Body() email: string,
-    @Body() password: string,
-    @Body() full_name: string,
-  ) {
-    return this.authService.registerByEmail(email, password, full_name);
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.registerByEmail(registerDto);
   }
 
-  @ApiOperation({ summary: 'Login an account' })
-  @ApiResponse({ status: 200, description: 'Login an account' })
-  @ApiResponse({ status: 400, description: 'Invalid email or password' })
   @Post('login')
-  async login(@Body() email: string, @Body() password: string) {
-    return this.authService.loginByEmail(email, password);
+  async login(@Body() loginDto: LoginDto) {
+    return this.authService.loginByEmail(loginDto);
   }
 
-  @ApiOperation({ summary: 'Send passcode to email' })
+  @UseGuards(AuthGuard('jwt'))
   @Post('send-passcode')
-  async sendPasscode(@Headers('authorization') token: string) {
-    const account = await this.authService.validateAccessToken(token);
+  async sendPasscode(@Request() req: RequestExpress) {
+    const acc = req.user as AuthenticatedUserDto;
+    const account = await this.accountService.findAccountById(acc.id);
     return this.authService.sendPasscode(account);
   }
 
-  @ApiOperation({ summary: 'Validate email' })
+  @UseGuards(AuthGuard('jwt'))
   @Post('validate-email')
-  async validateEmail(@Body() passcode: string, @Body() id: string) {
-    return this.authService.validateEmail(passcode, id);
+  async validateEmail(
+    @Body() passcode: string,
+    @Request() req: RequestExpress,
+  ) {
+    const acc = req.user as AuthenticatedUserDto;
+    return this.authService.validateEmail(passcode, acc.id);
   }
 }

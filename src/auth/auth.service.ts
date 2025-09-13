@@ -12,6 +12,9 @@ import { RedisService } from 'src/redis/redis.service';
 import { RefreshTokenService } from 'src/refreshToken/refreshToken.service';
 import { AccountEntity } from 'src/account/entity/account.entity';
 import { MailService } from 'src/mail/mail.service';
+import { RegisterDto } from './dto/registerAccount.dto';
+import { LoginDto } from './dto/loginAccount.dto';
+import { UserResponseDto } from 'src/account/dto/userResponse.dto';
 
 @Injectable()
 export class AuthService {
@@ -25,10 +28,9 @@ export class AuthService {
   ) {}
 
   async registerByEmail(
-    email: string,
-    password: string,
-    full_name: string,
+    registerDto: RegisterDto,
   ): Promise<{ accessToken: string; refreshToken: string }> {
+    const { email, password, full_name } = registerDto;
     // check if account already exists
     const account = await this.accountService.findAccountByEmail(email);
     if (account) {
@@ -42,8 +44,16 @@ export class AuthService {
     const newAccount = await this.accountService.createAccount(nCreated);
     // generate access and refresh tokens
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.sign({ id: newAccount.id }),
-      this.jwtService.signRefreshToken({ id: newAccount.id }),
+      this.jwtService.sign({
+        id: newAccount.id,
+        name: newAccount.full_name,
+        role: newAccount.role,
+      }),
+      this.jwtService.signRefreshToken({
+        id: newAccount.id,
+        name: newAccount.full_name,
+        role: newAccount.role,
+      }),
     ]);
     // set access token to redis
     await this.redisService.set(`id:${newAccount.id}`, accessToken, 60 * 60);
@@ -55,10 +65,8 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async loginByEmail(
-    email: string,
-    password: string,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  async loginByEmail(loginDto: LoginDto): Promise<UserResponseDto> {
+    const { email, password } = loginDto;
     // find account by email
     const account = await this.accountService.findAccountByEmail(email);
     if (!account) {
@@ -74,14 +82,27 @@ export class AuthService {
     }
     // generate access and refresh tokens
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.sign({ id: account.id }),
-      this.jwtService.signRefreshToken({ id: account.id }),
+      this.jwtService.sign({
+        id: account.id,
+        name: account.full_name,
+        role: account.role,
+      }),
+      this.jwtService.signRefreshToken({
+        id: account.id,
+        name: account.full_name,
+        role: account.role,
+      }),
     ]);
     // set access token to redis
     await this.redisService.set(`id:${account.id}`, accessToken, 60 * 60);
     // set refresh token to database
     await this.refreshTokenService.updateRefreshToken(account.id, refreshToken);
-    return { accessToken, refreshToken };
+    return {
+      name: account.full_name,
+      role: account.role,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    };
   }
 
   async validateAccessToken(accessToken: string): Promise<AccountEntity> {

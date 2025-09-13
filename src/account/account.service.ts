@@ -23,7 +23,7 @@ export class AccountService {
       password_hash: hashedPassword,
     });
     // save account
-    return this.accountRepository.save(newAccount);
+    return await this.accountRepository.save(newAccount);
   }
 
   async findAccountByEmail(email: string): Promise<AccountEntity> {

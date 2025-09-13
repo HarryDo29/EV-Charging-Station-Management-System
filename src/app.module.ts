@@ -8,6 +8,9 @@ import { RedisModule } from './redis/redis.module';
 import redisConfig from './config/redis.config';
 import { AuthModule } from './auth/auth.module';
 import { AccountModule } from './account/account.module';
+import { APP_GUARD, APP_PIPE } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { RoleGaurd } from './auth/gaurd/role.gaurd';
 
 @Module({
   imports: [
@@ -25,13 +28,18 @@ import { AccountModule } from './account/account.module';
     RedisModule,
     AuthModule,
     AccountModule,
-    // Argon2Module,
-    // JwtModule,
-    // RedisModule,
-    // RefreshTokenModule,
-    // MailModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_PIPE, // Báo cho NestJS rằng đây là một Pipe toàn cục
+      useClass: ValidationPipe,
+    },
+    {
+      provide: APP_GUARD, // Báo cho NestJS rằng đây là một Guard toàn cục
+      useClass: RoleGaurd,
+    },
+  ],
 })
 export class AppModule {}
