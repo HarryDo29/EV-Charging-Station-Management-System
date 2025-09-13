@@ -19,7 +19,7 @@ export class AccountEntity implements IAccount {
   @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ unique: true, nullable: true })
   phone_number: string;
 
   @Column()

@@ -4,8 +4,8 @@ import {
   IsString,
   IsStrongPassword,
   MinLength,
-  Matches,
 } from 'class-validator';
+import { Match } from '../decorator/match.decorator';
 
 export class RegisterDto {
   @IsString()
@@ -32,7 +32,7 @@ export class RegisterDto {
 
   @IsString()
   @IsNotEmpty()
-  @Matches(/^$password/, { message: 'Passwords do not match' })
+  @Match('password', { message: 'Passwords do not match' })
   @IsNotEmpty()
   confirmedPassword: string;
 }

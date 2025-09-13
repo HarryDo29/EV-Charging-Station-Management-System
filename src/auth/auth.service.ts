@@ -27,9 +27,7 @@ export class AuthService {
     private readonly mailService: MailService,
   ) {}
 
-  async registerByEmail(
-    registerDto: RegisterDto,
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  async registerByEmail(registerDto: RegisterDto): Promise<UserResponseDto> {
     const { email, password, full_name } = registerDto;
     // check if account already exists
     const account = await this.accountService.findAccountByEmail(email);
@@ -62,7 +60,12 @@ export class AuthService {
       newAccount.id,
       refreshToken,
     );
-    return { accessToken, refreshToken };
+    return {
+      name: newAccount.full_name,
+      role: newAccount.role,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    };
   }
 
   async loginByEmail(loginDto: LoginDto): Promise<UserResponseDto> {
