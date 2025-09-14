@@ -4,9 +4,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { VehicleEntity } from 'src/vehicle/entity/vehicle.entity';
 
 @Entity('accounts')
 export class AccountEntity implements IAccount {
@@ -39,4 +41,7 @@ export class AccountEntity implements IAccount {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany(() => VehicleEntity, (vehicle) => vehicle.account)
+  vehicles: VehicleEntity[];
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -38,7 +38,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(payload: JwtPayload): Promise<AuthenticatedUserDto> {
     // Here, you can perform additional logic checks,
     // for example: check if user ID in payload exists in DB.
-    await this.accountService.findAccountById(payload.id);
+    const account = await this.accountService.findAccountById(payload.id);
+    if (!account) {
+      throw new UnauthorizedException('Account not found');
+    }
     // If everything is ok, return the user object will be attached to request
     return {
       id: payload.id,

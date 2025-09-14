@@ -11,33 +11,37 @@ import { AccountModule } from './account/account.module';
 import { APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { RoleGaurd } from './auth/gaurd/role.gaurd';
+import { VehicleModule } from './vehicle/vehicle.module';
 
 @Module({
   imports: [
+    // Config for .env
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig, redisConfig],
     }),
+    // Config for TypeOrm
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) =>
         configService.get('database')!,
-      // Lấy toàn bộ cấu hình có namespace 'database'
+      // Get all configurations with namespace 'database'
     }),
     RedisModule,
     AuthModule,
     AccountModule,
+    VehicleModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     {
-      provide: APP_PIPE, // Báo cho NestJS rằng đây là một Pipe toàn cục
+      provide: APP_PIPE, // Tell NestJS that this is a global pipe
       useClass: ValidationPipe,
     },
     {
-      provide: APP_GUARD, // Báo cho NestJS rằng đây là một Guard toàn cục
+      provide: APP_GUARD, // Tell NestJS that this is a global guard
       useClass: RoleGaurd,
     },
   ],

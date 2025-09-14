@@ -1,11 +1,9 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateAccountDto } from './createdAccount.dto';
-import { IsString, IsNotEmpty, IsEnum, IsBoolean } from 'class-validator';
-import { IsUUID } from 'class-validator';
+import { IsString, IsEnum, IsBoolean } from 'class-validator';
 import { Role } from 'src/enums/role.enum';
 
-// PartialType sẽ lấy tất cả các thuộc tính của CreateAccountDto
-// và biến chúng thành tùy chọn (thêm dấu ? và decorator @IsOptional)
+// PartialType will take all properties of CreateAccountDto
 export class UpdateAccountDto extends PartialType(CreateAccountDto) {
   @IsString()
   full_name?: string;
@@ -24,11 +22,4 @@ export class UpdateAccountDto extends PartialType(CreateAccountDto) {
 
   @IsBoolean()
   is_active?: boolean;
-}
-
-export class UpdateAccountProfileDto extends PartialType(CreateAccountDto) {
-  @IsString()
-  @IsNotEmpty()
-  @IsUUID()
-  id: string;
 }

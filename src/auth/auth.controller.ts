@@ -29,7 +29,7 @@ export class AuthController {
   async sendPasscode(@Request() req: RequestExpress) {
     const acc = req.user as AuthenticatedUserDto;
     const account = await this.accountService.findAccountById(acc.id);
-    return await this.authService.sendPasscode(account);
+    return await this.authService.sendPasscode(account!);
   }
 
   @UseGuards(AuthGuard('jwt'))
