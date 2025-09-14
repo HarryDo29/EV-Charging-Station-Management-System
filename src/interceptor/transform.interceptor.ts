@@ -4,10 +4,11 @@ import {
   ExecutionContext,
   CallHandler,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { Response as ExpressResponse } from 'express'; // <-- Bước 1: Import type từ express
+import { Observable } from 'rxjs'; // import observable from rxjs to handle data
+import { map } from 'rxjs/operators'; // import map from rxjs operators to transform data
+import { Response as ExpressResponse } from 'express'; // import type from express
 
+// interface for response data
 export interface Response<T> {
   statusCode: number;
   message: string;
@@ -22,12 +23,12 @@ export class TransformInterceptor<T>
     context: ExecutionContext,
     next: CallHandler,
   ): Observable<Response<T>> {
-    // Bước 2: Lấy đối tượng response và chỉ định rõ kiểu dữ liệu
+    // get response object and specify data type
     const response = context.switchToHttp().getResponse<ExpressResponse>();
 
     return next.handle().pipe(
       map((data) => ({
-        // Bước 3: Bây giờ việc truy cập `response.statusCode` là an toàn
+        // now it's safe to access `response.statusCode`
         statusCode: response.statusCode,
         message: 'Success',
         data: data as T,

@@ -6,34 +6,37 @@ import {
   ValidationArguments,
 } from 'class-validator';
 
-// 1. Tạo class Constraint để chứa logic validation
+// 1. Create class Constraint to contain logic validation
 @ValidatorConstraint({ name: 'Match' })
 export class MatchConstraint implements ValidatorConstraintInterface {
-  // Hàm này sẽ chứa logic so sánh
+  // This function will contain logic to compare
   validate(value: any, args: ValidationArguments) {
     const [relatedPropertyName] = args.constraints as string[];
+    // get name of property to compare
     const relatedValue: unknown = (args.object as Record<string, unknown>)[
       relatedPropertyName
     ];
+    // get value of property to compare
     return value === relatedValue;
+    // return true if value is equal to related value
   }
 
-  // Hàm này trả về message lỗi mặc định
+  // This function will return default error message
   defaultMessage(args: ValidationArguments) {
     const [relatedPropertyName] = args.constraints as string[];
     return `$property must match ${relatedPropertyName}`;
   }
 }
 
-// 2. Tạo Decorator Function
+// 2. Create Decorator Function
 export function Match(property: string, validationOptions?: ValidationOptions) {
   return (object: object, propertyName: string) => {
     registerDecorator({
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
-      constraints: [property], // <-- Truyền tên của thuộc tính cần so sánh vào đây
-      validator: MatchConstraint, // Chỉ định class constraint sẽ được sử dụng
+      constraints: [property], // <-- Pass the name of the property to compare into here
+      validator: MatchConstraint, // Specify the class constraint that will be used
     });
   };
 }

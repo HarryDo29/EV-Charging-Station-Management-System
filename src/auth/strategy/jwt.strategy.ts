@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -6,11 +6,11 @@ import { Role } from 'src/enums/role.enum';
 import { AccountService } from 'src/account/account.service';
 import { AuthenticatedUserDto } from '../dto/authenticated-user.dto';
 
-// Định nghĩa kiểu dữ liệu cho payload để code an toàn hơn
+// Define data type for payload
 interface JwtPayload {
-  id: string; // Thường là user ID
+  id: string; // Usually is ID
   name: string;
-  role: Role; // Giả sử bạn có roles trong token
+  role: Role; // Assume you have roles in token
 }
 
 @Injectable()
@@ -20,31 +20,26 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     private readonly accountService: AccountService,
   ) {
     super({
-      // 1. Chỉ định cách trích xuất token từ request
+      // 1. Specify how to extract token from request
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-
-      // 2. Không bỏ qua khi token hết hạn
+      // 2. Do not skip when token expires
       ignoreExpiration: false,
-
-      // 3. Cung cấp secret key để Passport có thể xác thực chữ ký của token
+      // 3. Provide secret key to Passport to verify token signature
       secretOrKey: configService.get<string>('SECRET_KEY_ACCESS_TOKEN')!,
     });
   }
 
   /**
-   * Phương thức này sẽ được Passport gọi TỰ ĐỘNG
-   * sau khi nó đã xác thực thành công chữ ký và ngày hết hạn của token.
-   * @param payload Dữ liệu đã được giải mã từ token.
-   * @returns Đối tượng sẽ được NestJS gắn vào request.user
+   * This method will be called automatically by Passport
+   * after it has successfully verified the token signature and expiration date.
+   * @param payload Data decoded from token.
+   * @returns Object will be attached to request.user
    */
   async validate(payload: JwtPayload): Promise<AuthenticatedUserDto> {
-    // Tại đây, bạn có thể thực hiện thêm các bước kiểm tra logic,
-    // ví dụ: kiểm tra xem user ID trong payload có tồn tại trong DB không.
-    const account = await this.accountService.findAccountById(payload.id);
-    if (!account) {
-      throw new UnauthorizedException('Account not found');
-    }
-    // Nếu mọi thứ ổn, trả về đối tượng user sẽ được gắn vào request
+    // Here, you can perform additional logic checks,
+    // for example: check if user ID in payload exists in DB.
+    await this.accountService.findAccountById(payload.id);
+    // If everything is ok, return the user object will be attached to request
     return {
       id: payload.id,
       name: payload.name,
