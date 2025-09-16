@@ -12,6 +12,8 @@ import { APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { RoleGaurd } from './auth/gaurd/role.gaurd';
 import { VehicleModule } from './vehicle/vehicle.module';
+import { PaymentModule } from './payment/payment.module';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { VehicleModule } from './vehicle/vehicle.module';
     AuthModule,
     AccountModule,
     VehicleModule,
+    PaymentModule,
+    TransactionModule,
   ],
   controllers: [AppController],
   providers: [
