@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PayOS } from '@payos/node';
 import { PaymentService } from './payment.service';
 import { PaymentController } from './payment.controller';
+import { EventsGateway } from 'src/event/event.gateway';
 
 @Global()
 @Module({
@@ -21,6 +22,7 @@ import { PaymentController } from './payment.controller';
       },
       inject: [ConfigService],
     },
+    EventsGateway,
   ],
   exports: [PaymentService],
 })
