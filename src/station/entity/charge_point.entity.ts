@@ -6,10 +6,12 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   UpdateDateColumn,
 } from 'typeorm';
 import { PrimaryGeneratedColumn } from 'typeorm';
 import { StationEntity } from './station.entity';
+import { IncidentReportEntity } from 'src/staff/entity/incident_report.entity';
 
 @Entity('charge_points')
 export class ChargePointEntity {
@@ -48,4 +50,10 @@ export class ChargePointEntity {
   @Column()
   station_id: string;
   // FK column to store UUID of station
+
+  @OneToMany(
+    () => IncidentReportEntity,
+    (incident_report) => incident_report.charge_point,
+  )
+  incident_reports: IncidentReportEntity[];
 }

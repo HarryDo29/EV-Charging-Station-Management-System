@@ -5,10 +5,13 @@ import {
   CreateDateColumn,
   Entity,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { VehicleEntity } from 'src/vehicle/entity/vehicle.entity';
+import { UserSubscriptionsEntity } from 'src/plan/entity/user_subscriptions.entity';
+import { StaffEntity } from 'src/staff/entity/staff.entity';
 
 @Entity('accounts')
 export class AccountEntity implements IAccount {
@@ -44,4 +47,13 @@ export class AccountEntity implements IAccount {
 
   @OneToMany(() => VehicleEntity, (vehicle) => vehicle.account)
   vehicles: VehicleEntity[];
+
+  @OneToMany(
+    () => UserSubscriptionsEntity,
+    (user_subscription) => user_subscription.account,
+  )
+  user_subscriptions: UserSubscriptionsEntity[];
+
+  @OneToOne(() => StaffEntity, (staff) => staff.account)
+  staff: StaffEntity;
 }

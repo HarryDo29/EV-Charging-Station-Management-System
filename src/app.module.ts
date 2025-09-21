@@ -14,6 +14,7 @@ import { RoleGaurd } from './auth/gaurd/role.gaurd';
 import { VehicleModule } from './vehicle/vehicle.module';
 import { PaymentModule } from './payment/payment.module';
 import { TransactionModule } from './transaction/transaction.module';
+import { PlanModule } from './plan/plan.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { TransactionModule } from './transaction/transaction.module';
     VehicleModule,
     PaymentModule,
     TransactionModule,
+    PlanModule,
   ],
   controllers: [AppController],
   providers: [

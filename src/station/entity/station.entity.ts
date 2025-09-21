@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { PrimaryGeneratedColumn } from 'typeorm';
 import { ChargePointEntity } from './charge_point.entity';
+import { StaffEntity } from 'src/staff/entity/staff.entity';
 
 @Entity('stations')
 export class StationEntity {
@@ -64,4 +65,7 @@ export class StationEntity {
     cascade: true,
   })
   charge_points: ChargePointEntity[];
+
+  @OneToMany(() => StaffEntity, (staff) => staff.station)
+  staff: StaffEntity[];
 }
