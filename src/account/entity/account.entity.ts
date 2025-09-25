@@ -12,6 +12,7 @@ import {
 import { VehicleEntity } from 'src/vehicle/entity/vehicle.entity';
 import { UserSubscriptionsEntity } from 'src/plan/entity/user_subscriptions.entity';
 import { StaffEntity } from 'src/staff/entity/staff.entity';
+import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 
 @Entity('accounts')
 export class AccountEntity implements IAccount {
@@ -27,7 +28,7 @@ export class AccountEntity implements IAccount {
   @Column({ unique: true, nullable: true })
   phone_number: string;
 
-  @Column()
+  @Column({ nullable: true })
   password_hash: string;
 
   @Column({ type: 'enum', enum: Role, default: Role.DRIVER })
@@ -38,6 +39,9 @@ export class AccountEntity implements IAccount {
 
   @Column({ default: true })
   is_active: boolean;
+
+  @Column({ default: false })
+  is_oauth2: boolean;
 
   @CreateDateColumn()
   created_at: Date;
@@ -56,4 +60,7 @@ export class AccountEntity implements IAccount {
 
   @OneToOne(() => StaffEntity, (staff) => staff.account)
   staff: StaffEntity;
+
+  @OneToMany(() => TransactionEntity, (transaction) => transaction.account)
+  transactions: TransactionEntity[];
 }

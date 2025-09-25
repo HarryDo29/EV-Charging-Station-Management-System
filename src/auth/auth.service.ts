@@ -15,6 +15,9 @@ import { MailService } from 'src/mail/mail.service';
 import { RegisterDto } from './dto/registerAccount.dto';
 import { LoginDto } from './dto/loginAccount.dto';
 import { UserResponseDto } from 'src/account/dto/userResponse.dto';
+import { ChangePasswordDto } from './dto/changePassword.dto';
+import { OAuth2Dto } from './dto/oauth2.dto';
+import { CreateOAuth2AccountDto } from 'src/account/dto/createdOAuth2Account.dto';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +29,49 @@ export class AuthService {
     private readonly refreshTokenService: RefreshTokenService,
     private readonly mailService: MailService,
   ) {}
+
+  async validateAccount(oauth2Dto: OAuth2Dto): Promise<AccountEntity> {
+    const { email, name } = oauth2Dto;
+    // check if account already exists
+    const account = await this.accountService.findAccountByEmail(email);
+    if (account) {
+      return account;
+    }
+    // create account
+    const nCreated = new CreateOAuth2AccountDto();
+    nCreated.email = email;
+    nCreated.password = '';
+    nCreated.full_name = name;
+    const newAccount = await this.accountService.createOAuth2Account(nCreated);
+    return newAccount;
+  }
+
+  async loginByOAuth2(account: AccountEntity): Promise<UserResponseDto> {
+    // generate access and refresh tokens
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.sign({
+        id: account.id,
+        name: account.full_name,
+        role: account.role,
+      }),
+      this.jwtService.signRefreshToken({
+        id: account.id,
+        name: account.full_name,
+        role: account.role,
+      }),
+    ]);
+
+    // set access token to redis
+    await this.redisService.set(`id:${account.id}`, accessToken, 60 * 60);
+    // set refresh token to database
+    await this.refreshTokenService.updateRefreshToken(account.id, refreshToken);
+    return {
+      name: account.full_name,
+      role: account.role,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    };
+  }
 
   async registerByEmail(registerDto: RegisterDto): Promise<UserResponseDto> {
     const { email, password, full_name } = registerDto;
@@ -172,6 +218,32 @@ export class AuthService {
     // update account is verified
     await this.accountService.updateAccount(id, {
       is_verified: true,
+    });
+  }
+
+  async changePassword(
+    id: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<void> {
+    // find account by id
+    const account = await this.accountService.findAccountById(id);
+    if (!account) {
+      throw new NotFoundException('Account not found');
+    }
+    // compare old password
+    const isOldPasswordValid = await this.argon2Service.compare(
+      changePasswordDto.oldPassword,
+      account.password_hash,
+    );
+    if (!isOldPasswordValid) {
+      throw new UnauthorizedException('Invalid old password');
+    }
+    // update account password
+    const hashedPassword = await this.argon2Service.hash(
+      changePasswordDto.password,
+    );
+    await this.accountService.updateAccount(id, {
+      password_hash: hashedPassword,
     });
   }
 }

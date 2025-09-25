@@ -4,12 +4,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, In, Repository, UpdateResult } from 'typeorm';
+import {
+  ArrayOverlap,
+  Between,
+  FindOptionsWhere,
+  In,
+  LessThanOrEqual,
+  Repository,
+  UpdateResult,
+} from 'typeorm';
 import { StationEntity } from './entity/station.entity';
 import { CreateStationDto } from './dto/station/createStation.dto';
 import { UpdateStationDto } from './dto/station/updateStation.dto';
 import { ConnectorType } from 'src/enums/connector.enum';
 import { StationStatus } from 'src/enums/stationStatus.enum';
+import { FilterStationDto } from './dto/station/filterStation.dto';
 
 @Injectable()
 export class StationService {
@@ -91,10 +100,6 @@ export class StationService {
     return updatedStation;
   }
 
-  //   async deleteStation(id: string): Promise<void> {
-  //     await this.stationRepo.delete(id);
-  //   }
-
   async getStationById(id: string): Promise<StationEntity | null> {
     return await this.stationRepo.findOne({ where: { id } });
   }
@@ -127,7 +132,31 @@ export class StationService {
     });
   }
 
-  //   async getStations(): Promise<StationEntity[]> {
-  //     return await this.stationRepo.find();
-  //   }
+  async getStationsByFilter(
+    filterStationDto: FilterStationDto,
+  ): Promise<StationEntity[]> {
+    const { connectorTypes, pricePerKwh, powerKw } = filterStationDto;
+
+    // create where clause for filter
+    const where: FindOptionsWhere<StationEntity> = {
+      status: StationStatus.AVAILABLE,
+    };
+
+    if (connectorTypes) {
+      where.connectorTypes = ArrayOverlap(connectorTypes);
+    }
+
+    if (pricePerKwh) {
+      where.pricePerKwh = LessThanOrEqual(pricePerKwh);
+    }
+
+    if (powerKw) {
+      where.powerKw = LessThanOrEqual(powerKw);
+    }
+
+    return await this.stationRepo.find({
+      where,
+      relations: ['charge_points'],
+    });
+  }
 }

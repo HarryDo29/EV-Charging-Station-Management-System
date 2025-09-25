@@ -1,9 +1,11 @@
+import { AccountEntity } from 'src/account/entity/account.entity';
 import { TransactionMethod } from 'src/enums/transactionMethod.enum';
 import { TransactionStatus } from 'src/enums/transactionStatus.enum';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -30,4 +32,9 @@ export class TransactionEntity {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @ManyToOne(() => AccountEntity, (account) => account.transactions)
+  account: AccountEntity;
+  @Column()
+  account_id: string;
 }

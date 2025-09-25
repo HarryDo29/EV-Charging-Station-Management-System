@@ -1,4 +1,11 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Param,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/registerAccount.dto';
 import { LoginDto } from './dto/loginAccount.dto';
@@ -6,6 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { AccountService } from 'src/account/account.service';
 import { AuthenticatedUserDto } from './dto/authenticated-user.dto';
 import type { Request as RequestExpress } from 'express';
+import { ChangePasswordDto } from './dto/changePassword.dto';
 
 @Controller('/auth')
 export class AuthController {
@@ -40,5 +48,14 @@ export class AuthController {
   ) {
     const acc = req.user as AuthenticatedUserDto;
     return await this.authService.validateEmail(passcode, acc.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('/change-password/:id')
+  async changePassword(
+    @Param('id') id: string,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return await this.authService.changePassword(id, changePasswordDto);
   }
 }

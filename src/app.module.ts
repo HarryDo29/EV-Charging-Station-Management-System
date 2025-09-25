@@ -15,6 +15,7 @@ import { VehicleModule } from './vehicle/vehicle.module';
 import { PaymentModule } from './payment/payment.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { PlanModule } from './plan/plan.module';
+import { GoogleModule } from './google/google.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { PlanModule } from './plan/plan.module';
     PaymentModule,
     TransactionModule,
     PlanModule,
+    GoogleModule,
   ],
   controllers: [AppController],
   providers: [

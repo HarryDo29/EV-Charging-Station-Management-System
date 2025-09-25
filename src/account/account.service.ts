@@ -5,6 +5,7 @@ import { Repository, UpdateResult } from 'typeorm';
 import { Argon2Service } from 'src/argon2/argon2.service';
 import { CreateAccountDto } from './dto/createdAccount.dto';
 import { UpdateAccountDto } from './dto/updatedAccount.dto';
+import { CreateOAuth2AccountDto } from './dto/createdOAuth2Account.dto';
 
 @Injectable()
 export class AccountService {
@@ -13,6 +14,16 @@ export class AccountService {
     private readonly accountRepository: Repository<AccountEntity>,
     private readonly argon2Service: Argon2Service,
   ) {}
+
+  async createOAuth2Account(
+    account: CreateOAuth2AccountDto,
+  ): Promise<AccountEntity> {
+    // create account
+    const newAccount = this.accountRepository.create(account);
+    newAccount.is_oauth2 = true;
+    // save account
+    return await this.accountRepository.save(newAccount);
+  }
 
   async createAccount(account: CreateAccountDto): Promise<AccountEntity> {
     // hash password
@@ -65,5 +76,15 @@ export class AccountService {
     }
     //delete account
     return await this.accountRepository.update(id, { is_active: false });
+  }
+
+  async getAccount(id: string): Promise<AccountEntity> {
+    const acc = await this.accountRepository.findOne({
+      where: { id },
+    });
+    if (!acc) {
+      throw new NotFoundException('Account not found');
+    }
+    return acc;
   }
 }
