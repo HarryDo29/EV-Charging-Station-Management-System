@@ -12,6 +12,7 @@ import {
 import { PrimaryGeneratedColumn } from 'typeorm';
 import { StationEntity } from './station.entity';
 import { IncidentReportEntity } from 'src/staff/entity/incident_report.entity';
+import { ReservationEntity } from './reservation.entity';
 
 @Entity('charge_points')
 export class ChargePointEntity {
@@ -29,6 +30,12 @@ export class ChargePointEntity {
 
   @Column({ nullable: false })
   price_per_kwh: number; // unit: VND/kWh
+
+  @Column({ nullable: false })
+  parking_fee_per_hour: number; // unit: VND/hour
+
+  @Column({ default: false })
+  reserved_status: boolean;
 
   @Column({
     type: 'enum',
@@ -56,4 +63,7 @@ export class ChargePointEntity {
     (incident_report) => incident_report.charge_point,
   )
   incident_reports: IncidentReportEntity[];
+
+  @OneToMany(() => ReservationEntity, (reservation) => reservation.charge_point)
+  reservations: ReservationEntity[];
 }

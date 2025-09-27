@@ -5,11 +5,12 @@ import { StationService } from './station.service';
 import { StationEntity } from './entity/station.entity';
 import { ChargePointEntity } from './entity/charge_point.entity';
 import { ChargePointService } from './charge_point.service';
+import { RedisService } from 'src/redis/redis.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([StationEntity, ChargePointEntity])],
   controllers: [StationController],
-  providers: [StationService, ChargePointService],
+  providers: [StationService, ChargePointService, RedisService],
   exports: [StationService, ChargePointService],
 })
 export class StationModule {}

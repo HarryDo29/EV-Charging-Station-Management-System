@@ -13,6 +13,7 @@ import { VehicleEntity } from 'src/vehicle/entity/vehicle.entity';
 import { UserSubscriptionsEntity } from 'src/plan/entity/user_subscriptions.entity';
 import { StaffEntity } from 'src/staff/entity/staff.entity';
 import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
+import { ReservationEntity } from 'src/station/entity/reservation.entity';
 
 @Entity('accounts')
 export class AccountEntity implements IAccount {
@@ -63,4 +64,7 @@ export class AccountEntity implements IAccount {
 
   @OneToMany(() => TransactionEntity, (transaction) => transaction.account)
   transactions: TransactionEntity[];
+
+  @OneToMany(() => ReservationEntity, (reservation) => reservation.account)
+  reservations: ReservationEntity[];
 }
