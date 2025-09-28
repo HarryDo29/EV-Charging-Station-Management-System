@@ -1,27 +1,24 @@
-import { Injectable, Inject } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { Injectable } from '@nestjs/common';
+import { MailerService } from '@nestjs-modules/mailer';
+import { ReservationEntity } from 'src/station/entity/reservation.entity';
 
 @Injectable()
 export class MailService {
-  // Inject transporter vào service bằng token 'MAIL_TRANSPORTER'
-  constructor(
-    @Inject('MAIL_TRANSPORTER')
-    private readonly mailer: nodemailer.Transporter,
-  ) {}
+  constructor(private mailerService: MailerService) {}
 
-  async sendMail(to: string, subject: string, html: string): Promise<void> {
-    try {
-      await this.mailer.sendMail({
-        from: process.env.MAIL_FROM, // Lấy địa chỉ người gửi từ .env
-        to: to,
-        subject: subject,
-        html: html,
-      });
-      console.log(`Email sent to ${to}`);
-    } catch (error) {
-      console.error('Error sending email:', error);
-      // Bạn nên xử lý lỗi một cách phù hợp hơn ở đây
-      throw new Error('Could not send email.');
-    }
+  async sendBookingConfirmation(to: string, reservation: ReservationEntity) {
+    const { charge_point_id, start_time, end_time } = reservation;
+
+    await this.mailerService.sendMail({
+      to,
+      subject: 'Booking Reservation Confirmation - EV Charger',
+      template: './reservation-template', // Tên file template
+      context: {
+        userName: reservation.account.full_name,
+        chargePointId: charge_point_id,
+        startTime: start_time.toLocaleString(),
+        endTime: end_time.toLocaleString(),
+      },
+    });
   }
 }

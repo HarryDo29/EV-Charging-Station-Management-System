@@ -1,30 +1,34 @@
-import { Module, Global } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
-import { MailService } from './mail.service';
+import { Module } from '@nestjs/common';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { join } from 'path';
 
-@Global() // Giúp MailService có thể được inject ở bất kỳ đâu
 @Module({
-  providers: [
-    MailService,
-    {
-      provide: 'MAIL_TRANSPORTER', // Tạo một provider với token tùy chỉnh
-      useFactory: (configService: ConfigService) => {
-        // Factory này sẽ tạo ra transporter của nodemailer
-        const transporter = nodemailer.createTransport({
-          host: configService.get<string>('MAIL_HOST'),
-          port: configService.get<number>('MAIL_PORT'),
-          secure: configService.get<boolean>('MAIL_SECURE'), // true cho port 465, false cho các port khác
+  imports: [
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        transport: {
+          service: config.get('EMAIL_SERVICE'),
           auth: {
-            user: configService.get<string>('MAIL_USER'),
-            pass: configService.get<string>('MAIL_PASS'),
+            user: config.get('EMAIL_USER'),
+            pass: config.get('EMAIL_PASS'),
           },
-        });
-        return transporter;
-      },
-      inject: [ConfigService], // Inject ConfigService để đọc file .env
-    },
+        },
+        defaults: {
+          from: `"EV Charger System" <${config.get('EMAIL_USER')}>`,
+        },
+        template: {
+          dir: join(__dirname, '..', 'templates'), // Thư mục chứa template
+          adapter: new HandlebarsAdapter(),
+          options: {
+            strict: true,
+          },
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
-  exports: [MailService], // Export MailService để các module khác có thể sử dụng
 })
 export class MailModule {}

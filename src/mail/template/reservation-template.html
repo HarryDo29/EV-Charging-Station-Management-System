@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        border: 1px solid #add8e6;
+      }
+      .header {
+        background-color: #add8e6;
+        color: #1e90ff;
+        padding: 10px;
+        text-align: center;
+      }
+      .details {
+        margin: 20px 0;
+      }
+      .details ul {
+        list-style-type: none;
+        padding: 0;
+      }
+      .details ul li {
+        margin-bottom: 10px;
+      }
+      .website-info {
+        font-size: 14px;
+        color: #555;
+        margin-top: 20px;
+        border-top: 1px solid #add8e6;
+        padding-top: 10px;
+      }
+      .footer {
+        font-size: 12px;
+        color: #777;
+        text-align: center;
+        margin-top: 20px;
+        border-top: 1px solid #add8e6;
+        padding-top: 10px;
+      }
+      a {
+        color: #1e90ff;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Đặt Chỗ Sạc Thành Công</h1>
+      </div>
+      <p>Xin chào {{userName}},</p>
+      <p>
+        Cảm ơn bạn đã sử dụng dịch vụ của EV Charger System! Đặt chỗ của bạn đã
+        được xác nhận thành công với các thông tin sau:
+      </p>
+      <div class="details">
+        <ul>
+          <li><strong>Mã Trạm Sạc:</strong> {{chargePointId}}</li>
+          <li><strong>Thời Gian Bắt Đầu:</strong> {{startTime}}</li>
+          <li><strong>Thời Gian Kết Thúc:</strong> {{endTime}}</li>
+        </ul>
+      </div>
+      <p>
+        Vui lòng đến đúng giờ để sử dụng dịch vụ. Nếu có bất kỳ thay đổi nào,
+        hãy liên hệ với chúng tôi.
+      </p>
+      <div class="website-info">
+        <p>
+          Truy cập trang web của chúng tôi để quản lý đặt chỗ và thanh toán:
+          <a href="https://evcharger.com">https://evcharger.com</a>
+        </p>
+        <p>
+          Theo dõi chúng tôi trên mạng xã hội để nhận ưu đãi:
+          <a href="https://facebook.com/evcharger">Facebook</a> |
+          <a href="https://twitter.com/evcharger">Twitter</a>
+        </p>
+      </div>
+      <div class="footer">
+        <p>&copy; 2025 EV Charger System. Mọi quyền được bảo lưu.</p>
+        <p>Liên hệ: support@evcharger.com | Hotline: +84 123 456 789</p>
+      </div>
+    </div>
+  </body>
+</html>

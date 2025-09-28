@@ -14,6 +14,7 @@ import { CreateReservationDto } from './dto/reservation/createReservation.dto';
 import { ReservationEntity } from './entity/reservation.entity';
 import { RedisService } from 'src/redis/redis.service';
 import { ReservationStatus } from 'src/enums/reservation.enum';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class ChargePointService {
@@ -25,6 +26,7 @@ export class ChargePointService {
     @InjectRepository(ReservationEntity)
     private readonly reservationRepo: Repository<ReservationEntity>,
     private readonly redisService: RedisService,
+    private readonly mailService: MailService,
   ) {}
 
   // create charge-point with identifier and station
@@ -172,6 +174,11 @@ export class ChargePointService {
       charge_point_id: charge_point_id,
       total_time: this.calculateTotalTime(start_time, end_time),
     });
+    // send email to account
+    await this.mailService.sendBookingConfirmation(
+      nReservation.account.email,
+      nReservation,
+    );
     return await this.reservationRepo.save(nReservation);
   }
 
