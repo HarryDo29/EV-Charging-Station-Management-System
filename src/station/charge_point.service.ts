@@ -15,6 +15,7 @@ import { ReservationEntity } from './entity/reservation.entity';
 import { RedisService } from 'src/redis/redis.service';
 import { ReservationStatus } from 'src/enums/reservation.enum';
 import { MailService } from 'src/mail/mail.service';
+import { TransactionService } from 'src/transaction/transaction.service';
 
 @Injectable()
 export class ChargePointService {
@@ -27,6 +28,7 @@ export class ChargePointService {
     private readonly reservationRepo: Repository<ReservationEntity>,
     private readonly redisService: RedisService,
     private readonly mailService: MailService,
+    private readonly transactionService: TransactionService,
   ) {}
 
   // create charge-point with identifier and station
@@ -238,6 +240,7 @@ export class ChargePointService {
     chargingPrice: number;
     parkingFee: number;
     totalPrice: number;
+    accountId: string;
   }> {
     const reservation = await this.reservationRepo.findOne({
       where: { id: reservationId },
@@ -265,6 +268,11 @@ export class ChargePointService {
       await this.calChargingTimeAndPrice(reservationId, chargingTime);
     // remove reservation from redis
     await this.redisService.del(`StartCharging:${reservationId}`);
-    return { chargingPrice, parkingFee, totalPrice };
+    return {
+      chargingPrice,
+      parkingFee,
+      totalPrice,
+      accountId: reservation.account_id,
+    };
   }
 }

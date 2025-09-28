@@ -8,20 +8,22 @@ export class PaymentService {
     private readonly payOS: PayOS,
   ) {}
 
-  generateOrderCode(): bigint {
-    // 1. Lấy timestamp hiện tại (13 chữ số)
-    const timestamp = Date.now();
-    // 2. Tạo một số ngẫu nhiên có 4 chữ số (từ 0000 đến 9999)
-    const randomSuffix = Math.floor(Math.random() * 10000)
-      .toString()
-      .padStart(4, '0');
-    // 3. Ghép chúng lại và chuyển thành BigInt để đảm bảo an toàn
-    return BigInt(String(timestamp) + randomSuffix);
+  generateOrderCode(): number {
+    // Tương tự docs PayOS: microtime(true) * 10000, lấy 6 chữ số cuối
+    const microtime = process.hrtime.bigint(); // High-resolution time (nanoseconds)
+    const timestamp = Number(microtime / BigInt(1000000)); // Chuyển sang mili giây
+    const randomSuffix = Math.floor(Math.random() * 10000); // Random 4 chữ số
+    const orderCode = parseInt(`${timestamp}${randomSuffix}`.slice(-8)); // Lấy 8 chữ số cuối
+    return orderCode;
   }
 
-  async createPaymentLink(amount: number, description: string) {
+  async createPaymentLink(
+    amount: number,
+    orderCode: number,
+    description: string,
+  ) {
     const order = {
-      orderCode: Number(this.generateOrderCode()),
+      orderCode: orderCode,
       amount: amount,
       description: description,
       currency: 'VND',

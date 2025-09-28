@@ -15,8 +15,8 @@ export class TransactionEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
-  order_code: string;
+  @Column({ unique: true, type: 'integer' })
+  order_code: number;
 
   @Column({ type: 'numeric' })
   amount: number;
@@ -24,7 +24,11 @@ export class TransactionEntity {
   @Column({ type: 'enum', enum: TransactionMethod })
   method: TransactionMethod;
 
-  @Column({ type: 'enum', enum: TransactionStatus })
+  @Column({
+    type: 'enum',
+    enum: TransactionStatus,
+    default: TransactionStatus.PENDING,
+  })
   status: TransactionStatus;
 
   @CreateDateColumn()
