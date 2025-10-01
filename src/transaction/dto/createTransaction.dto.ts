@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 import { TransactionMethod } from 'src/enums/transactionMethod.enum';
 
 export class CreateTransactionDto {
@@ -7,6 +7,7 @@ export class CreateTransactionDto {
   amount: number;
 
   @IsEnum(TransactionMethod)
-  @IsNotEmpty()
-  method: TransactionMethod;
+  @IsOptional()
+  // @IsNotEmpty()
+  method?: TransactionMethod;
 }

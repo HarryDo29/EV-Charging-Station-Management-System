@@ -5,10 +5,12 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { ReservationStatus } from 'src/enums/reservation.enum';
 import { ChargePointEntity } from './charge_point.entity';
 import { AccountEntity } from 'src/account/entity/account.entity';
+import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 
 @Entity('reservations')
 export class ReservationEntity {
@@ -21,7 +23,7 @@ export class ReservationEntity {
   @Column()
   start_time: Date;
 
-  @Column()
+  @Column({ nullable: true })
   end_time: Date;
 
   @Column()
@@ -50,6 +52,9 @@ export class ReservationEntity {
 
   @ManyToOne(() => AccountEntity, (account) => account.reservations)
   account: AccountEntity;
-  @Column()
+  @Column({ nullable: true })
   account_id: string;
+
+  @OneToMany(() => TransactionEntity, (transaction) => transaction.reservation)
+  transactions: TransactionEntity[];
 }

@@ -1,6 +1,8 @@
 import { AccountEntity } from 'src/account/entity/account.entity';
 import { TransactionMethod } from 'src/enums/transactionMethod.enum';
 import { TransactionStatus } from 'src/enums/transactionStatus.enum';
+import { ChargePointEntity } from 'src/station/entity/charge_point.entity';
+import { ReservationEntity } from 'src/station/entity/reservation.entity';
 import {
   Column,
   CreateDateColumn,
@@ -41,4 +43,17 @@ export class TransactionEntity {
   account: AccountEntity;
   @Column()
   account_id: string;
+
+  @ManyToOne(
+    () => ChargePointEntity,
+    (charge_point) => charge_point.transactions,
+  )
+  charge_point: ChargePointEntity;
+  @Column()
+  charge_point_id: string;
+
+  @ManyToOne(() => ReservationEntity, (reservation) => reservation.transactions)
+  reservation: ReservationEntity;
+  @Column()
+  reservation_id: string;
 }

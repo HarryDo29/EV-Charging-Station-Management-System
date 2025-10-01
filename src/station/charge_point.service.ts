@@ -123,6 +123,7 @@ export class ChargePointService {
       where: {
         reservation_day: reservation_day,
         charge_point_id: charge_point_id,
+        status: ReservationStatus.PENDING,
       },
     });
     // check start time: if in range of start_time and end_time in another reservation

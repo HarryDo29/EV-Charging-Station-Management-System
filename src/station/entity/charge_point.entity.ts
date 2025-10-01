@@ -13,6 +13,7 @@ import { PrimaryGeneratedColumn } from 'typeorm';
 import { StationEntity } from './station.entity';
 import { IncidentReportEntity } from 'src/staff/entity/incident_report.entity';
 import { ReservationEntity } from './reservation.entity';
+import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 
 @Entity('charge_points')
 export class ChargePointEntity {
@@ -66,4 +67,7 @@ export class ChargePointEntity {
 
   @OneToMany(() => ReservationEntity, (reservation) => reservation.charge_point)
   reservations: ReservationEntity[];
+
+  @OneToMany(() => TransactionEntity, (transaction) => transaction.charge_point)
+  transactions: TransactionEntity[];
 }

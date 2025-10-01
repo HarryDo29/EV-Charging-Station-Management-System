@@ -19,7 +19,7 @@ export class TransactionController {
   ) {
     const acc = req.user as AuthenticatedUserDto;
     const transaction = new CreateTransactionDto();
-    transaction.amount = body.amount;
+    transaction.amount = body.amount * 100;
     transaction.method = TransactionMethod.PAYOS;
     return await this.transactionService.createTransaction(transaction, acc.id);
   }
