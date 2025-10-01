@@ -16,6 +16,10 @@ import { PaymentModule } from './payment/payment.module';
 import { TransactionModule } from './transaction/transaction.module';
 import { PlanModule } from './plan/plan.module';
 import { GoogleModule } from './google/google.module';
+import { CronModule } from './cron/cron.module';
+import { BullModule } from '@nestjs/bullmq';
+import { QueueOptions } from 'bullmq';
+import { QueueModule } from './queue/queue.module';
 
 @Module({
   imports: [
@@ -32,6 +36,17 @@ import { GoogleModule } from './google/google.module';
         configService.get('database')!,
       // Get all configurations with namespace 'database'
     }),
+    // Config for BullMQ
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService): QueueOptions => ({
+        connection: {
+          host: configService.get<string>('REDIS_HOST')!,
+          port: parseInt(configService.get<string>('REDIS_PORT')!, 10),
+        },
+      }),
+    }),
     RedisModule,
     AuthModule,
     AccountModule,
@@ -40,6 +55,8 @@ import { GoogleModule } from './google/google.module';
     TransactionModule,
     PlanModule,
     GoogleModule,
+    QueueModule,
+    CronModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult } from 'typeorm';
 import { StationEntity } from './entity/station.entity';
@@ -10,7 +6,6 @@ import { ChargePointEntity } from './entity/charge_point.entity';
 import { CreateChargePointDto } from './dto/charge_point/createChargePoint.dto';
 import { UpdateChargePointDto } from './dto/charge_point/updateChargePoint.dto';
 import { StationStatus } from 'src/enums/stationStatus.enum';
-import { CreateReservationDto } from './dto/reservation/createReservation.dto';
 import { ReservationEntity } from './entity/reservation.entity';
 import { RedisService } from 'src/redis/redis.service';
 import { ReservationStatus } from 'src/enums/reservation.enum';
@@ -110,79 +105,6 @@ export class ChargePointService {
   calculateTotalTime(start_time: Date, end_time: Date): number {
     const totalTime = end_time.getTime() - start_time.getTime();
     return totalTime;
-  }
-
-  // check duplicated reservation
-  async checkDuplicatedReservation(
-    reservation_day: string,
-    charge_point_id: string,
-    start_time: Date,
-    end_time: Date,
-  ): Promise<boolean> {
-    const reservation = await this.reservationRepo.find({
-      where: {
-        reservation_day: reservation_day,
-        charge_point_id: charge_point_id,
-        status: ReservationStatus.PENDING,
-      },
-    });
-    // check start time: if in range of start_time and end_time in another reservation
-    // check end time: if in range of start_time and end_time in another reservation
-    for (const res of reservation) {
-      // check start time - if start_time is in range of start_time and end_time in another reservation return false
-      if (res.start_time <= start_time && res.end_time >= start_time) {
-        return false;
-      }
-      // check end time - if end_time is in range of start_time and end_time in another reservation return false
-      if (res.start_time <= end_time && res.end_time >= end_time) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  // create reservation (only available and not reserved)
-  async createReservation(
-    accountId: string,
-    reservation: CreateReservationDto,
-  ) {
-    const { reservation_day, charge_point_id, start_time, end_time } =
-      reservation;
-    const chargePoint = await this.chargePointRepo.findOne({
-      where: {
-        id: charge_point_id,
-        status: StationStatus.AVAILABLE,
-        reserved_status: false,
-      },
-    });
-    if (!chargePoint) {
-      throw new NotFoundException('Charge point not available');
-    }
-    // check duplicated reservation
-    const isDuplicated = await this.checkDuplicatedReservation(
-      reservation_day,
-      charge_point_id,
-      start_time,
-      end_time,
-    );
-    if (isDuplicated) {
-      throw new BadRequestException('Reservation is duplicated');
-    }
-    // create reservation
-    const nReservation = this.reservationRepo.create({
-      reservation_day: reservation_day,
-      start_time: start_time,
-      end_time: end_time,
-      account_id: accountId,
-      charge_point_id: charge_point_id,
-      total_time: this.calculateTotalTime(start_time, end_time),
-    });
-    // send email to account
-    await this.mailService.sendBookingConfirmation(
-      nReservation.account.email,
-      nReservation,
-    );
-    return await this.reservationRepo.save(nReservation);
   }
 
   /*

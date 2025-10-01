@@ -1,0 +1,152 @@
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
+import { ReservationEntity } from './entity/reservation.entity';
+import { ReservationStatus } from 'src/enums/reservation.enum';
+import { CreateReservationDto } from './dto/reservation/createReservation.dto';
+import { StationStatus } from 'src/enums/stationStatus.enum';
+import { ChargePointService } from './charge_point.service';
+import { MailService } from 'src/mail/mail.service';
+import { ChargePointEntity } from './entity/charge_point.entity';
+
+@Injectable()
+export class ReservationService {
+  constructor(
+    @InjectRepository(ReservationEntity)
+    private readonly reservationRepo: Repository<ReservationEntity>,
+    @InjectRepository(ChargePointEntity)
+    private readonly chargePointRepo: Repository<ChargePointEntity>,
+    private readonly chargePointService: ChargePointService,
+    private readonly mailService: MailService,
+  ) {}
+  FIFTEEN_MINUTES = 15 * 60 * 1000;
+  THIRTY_MINUTES = 30 * 60 * 1000;
+
+  // check duplicated reservation
+  async checkDuplicatedReservation(
+    reservation_day: string,
+    charge_point_id: string,
+    start_time: Date,
+    end_time: Date,
+  ): Promise<boolean> {
+    const reservation = await this.reservationRepo.find({
+      where: {
+        reservation_day: reservation_day,
+        charge_point_id: charge_point_id,
+        status: ReservationStatus.PENDING,
+      },
+    });
+    // check start time: if in range of start_time and end_time in another reservation
+    // check end time: if in range of start_time and end_time in another reservation
+    for (const res of reservation) {
+      // check start time - if start_time is in range of start_time and end_time in another reservation return false
+      if (res.start_time <= start_time && res.end_time >= start_time) {
+        return false;
+      }
+      // check end time - if end_time is in range of start_time and end_time in another reservation return false
+      if (res.start_time <= end_time && res.end_time >= end_time) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // create reservation (only available and not reserved)
+  async createReservation(
+    accountId: string,
+    reservation: CreateReservationDto,
+  ) {
+    const { reservation_day, charge_point_id, start_time, end_time } =
+      reservation;
+    const chargePoint = await this.chargePointRepo.findOne({
+      where: {
+        id: charge_point_id,
+        status: StationStatus.AVAILABLE,
+        reserved_status: false,
+      },
+    });
+    if (!chargePoint) {
+      throw new NotFoundException('Charge point not available');
+    }
+    // check duplicated reservation
+    const isDuplicated = await this.checkDuplicatedReservation(
+      reservation_day,
+      charge_point_id,
+      start_time,
+      end_time,
+    );
+    if (isDuplicated) {
+      throw new BadRequestException('Reservation is duplicated');
+    }
+    // create reservation
+    const nReservation = this.reservationRepo.create({
+      reservation_day: reservation_day,
+      start_time: start_time,
+      end_time: end_time,
+      account_id: accountId,
+      charge_point_id: charge_point_id,
+      total_time: this.chargePointService.calculateTotalTime(
+        start_time,
+        end_time,
+      ),
+    });
+    // send email to account
+    await this.mailService.sendBookingConfirmation(
+      nReservation.account.email,
+      nReservation,
+    );
+    return await this.reservationRepo.save(nReservation);
+  }
+
+  // get expired reservation at time now
+  async getExpiredReservation(): Promise<{
+    remindArray: ReservationEntity[];
+    expiredArray: ReservationEntity[];
+  }> {
+    // get all reservation that status is pending and start time is more than now
+    const expiredReservation = await this.reservationRepo.find({
+      where: {
+        status: ReservationStatus.PENDING,
+        start_time: MoreThanOrEqual(new Date()),
+      },
+    });
+    // array of remind reservation
+    const remindArray: ReservationEntity[] = [];
+    // array of expired reservation
+    const expiredArray: ReservationEntity[] = [];
+    // filter remind and expired reservation
+    for (const res of expiredReservation) {
+      const now = new Date();
+      const timeDiff = now.getTime() - res.start_time.getTime();
+      // remind reservation
+      if (timeDiff > this.FIFTEEN_MINUTES && timeDiff < this.THIRTY_MINUTES) {
+        remindArray.push(res);
+        // send email to account
+        await this.mailService.sendReminderEmail(res.account.email, res);
+      }
+      // expired reservation
+      if (timeDiff > this.THIRTY_MINUTES) {
+        expiredArray.push(res);
+        // update reservation status to expired
+        await this.updateReserStatusToCancelled(res.id);
+        // send email to account
+        await this.mailService.sendCancellationMail(res.account.email, res);
+      }
+    }
+    return {
+      remindArray,
+      expiredArray,
+    };
+  }
+
+  // update reservation status to expired
+  async updateReserStatusToCancelled(reservationId: string): Promise<void> {
+    await this.reservationRepo.update(reservationId, {
+      status: ReservationStatus.CANCELLED,
+    });
+  }
+}

@@ -1,0 +1,92 @@
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thông báo hủy lịch đặt sạc</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        background-color: #dc3545;
+        color: #ffffff;
+        text-align: center;
+        padding: 20px;
+      }
+      .content {
+        padding: 20px;
+        color: #333333;
+      }
+      .alert-box {
+        background-color: #fce8e6;
+        padding: 15px;
+        border-left: 5px solid #dc3545;
+        margin: 20px 0;
+      }
+      .highlight {
+        font-weight: bold;
+        color: #dc3545;
+      }
+      .footer {
+        text-align: center;
+        padding: 10px;
+        font-size: 12px;
+        color: #777777;
+        background-color: #f8f9fa;
+      }
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>THÔNG BÁO HỦY LỊCH ĐẶT SẠC</h1>
+      </div>
+      <div class="content">
+        <p>Kính gửi Quý Tài xế {{driverName}},</p>
+        <p>
+          Chúng tôi rất tiếc phải thông báo rằng lịch đặt vị trí sạc cho đơn
+          hàng ngày <strong>{{reservationDay}}</strong> bắt đầu lúc
+          <strong>{{startTime}}</strong> và kết thúc lúc
+          <strong>{{endTime}}</strong> tại trạm
+          <strong>{{stationName}}</strong> đã được hệ thống tự động hủy. Lý do
+          là bạn đã trễ hơn <strong>30 phút</strong> so với thời gian lịch hẹn,
+          và chúng tôi cần nhường vị trí cho các tài xế khác để đảm bảo dịch vụ
+          mượt mà.
+        </p>
+        <div class="alert-box">
+          <p class="highlight">Lưu ý:</p>
+          <p>
+            Lịch hẹn đã bị hủy vào lúc <strong>{{cancellationTime}}</strong>.
+            Bạn có thể đặt lịch mới qua ứng dụng hoặc website của chúng tôi. Nếu
+            bạn có lý do đặc biệt, vui lòng liên hệ để được hỗ trợ.
+          </p>
+        </div>
+        <p>
+          Chúng tôi luôn sẵn sàng phục vụ bạn. Nếu cần giúp đỡ, hãy liên hệ qua
+          email:
+          <a href="mailto:support@example.com">support@example.com</a> hoặc số
+          điện thoại: <a href="tel:+84901234567">090 123 4567</a>.
+        </p>
+      </div>
+      <div class="footer">
+        <p>Trân trọng,<br />Đội ngũ Hỗ trợ [Tên Công ty]</p>
+        <p>&copy; {{year}} [Tên Công ty]. Đã đăng ký bản quyền.</p>
+      </div>
+    </div>
+  </body>
+</html>

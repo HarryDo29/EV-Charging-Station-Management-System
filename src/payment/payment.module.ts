@@ -6,12 +6,21 @@ import { PaymentController } from './payment.controller';
 import { EventsGateway } from 'src/event/event.gateway';
 import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MailService } from 'src/mail/mail.service';
+import { TransactionService } from 'src/transaction/transaction.service';
+import { StationEntity } from 'src/station/entity/station.entity';
+import { AccountService } from 'src/account/account.service';
+import { AccountEntity } from 'src/account/entity/account.entity';
+import { Argon2Service } from 'src/argon2/argon2.service';
 
 @Global()
 @Module({
-  imports: [TypeOrmModule.forFeature([TransactionEntity])],
+  imports: [
+    TypeOrmModule.forFeature([TransactionEntity, StationEntity, AccountEntity]),
+  ],
   controllers: [PaymentController],
   providers: [
+    MailService,
     PaymentService,
     {
       provide: 'PAYOS_INSTANCE',
@@ -37,6 +46,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       inject: [ConfigService],
     },
     EventsGateway,
+    TransactionService,
+    AccountService,
+    Argon2Service,
   ],
   exports: [PaymentService],
 })

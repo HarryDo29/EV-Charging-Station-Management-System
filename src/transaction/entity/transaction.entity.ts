@@ -49,11 +49,11 @@ export class TransactionEntity {
     (charge_point) => charge_point.transactions,
   )
   charge_point: ChargePointEntity;
-  @Column()
+  @Column({ nullable: true })
   charge_point_id: string;
 
   @ManyToOne(() => ReservationEntity, (reservation) => reservation.transactions)
   reservation: ReservationEntity;
-  @Column()
+  @Column({ nullable: true })
   reservation_id: string;
 }

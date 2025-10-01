@@ -54,7 +54,6 @@ export class ChargePointEntity {
   @ManyToOne(() => StationEntity, (station) => station.charge_points)
   @JoinColumn({ name: 'station_id' })
   station: StationEntity;
-
   @Column()
   station_id: string;
   // FK column to store UUID of station
