@@ -6,6 +6,8 @@ import {
   Get,
   Param,
   Request,
+  Query,
+  Put,
 } from '@nestjs/common';
 import { StaffService } from './staff.service';
 import { IncidentReportService } from './incident_report.service';
@@ -18,6 +20,7 @@ import type { Request as RequestExpress } from 'express';
 import { StartChargingDto } from 'src/station/dto/charge_point/startCharging.dto';
 import { EndChargingDto } from 'src/station/dto/charge_point/endCharging.dto';
 import { CreateIncidentReportDto } from './dto/incident_report/createIncedentReport.dto';
+import { UpdateReportStatusDto } from './dto/incident_report/updateReportStatus.dto';
 
 @Controller('staff')
 export class StaffController {
@@ -26,7 +29,7 @@ export class StaffController {
     private readonly incidentReportService: IncidentReportService,
   ) {}
 
-  // STAFF
+  //______________________________________STAFF______________________________________
   @Post('/create')
   @UseGuards(AuthGuard('jwt'))
   @Roles(Role.ADMIN)
@@ -64,34 +67,41 @@ export class StaffController {
     return await this.staffService.endChargePoint(charge_point_id, end_time);
   }
 
-  // INCIDENT REPORT
+  //______________________________________INCIDENT REPORT______________________________________
   @Post('/create-incident-report')
   @UseGuards(AuthGuard('jwt'))
   async createIncidentReport(@Body() body: CreateIncidentReportDto) {
     return await this.incidentReportService.createIncidentReport(body);
   }
 
-  @Get('/get-incident-reports/:charge_point_id')
+  @Put('/update-incident-report-status')
+  @UseGuards(AuthGuard('jwt'))
+  async updateIncidentReportStatus(@Body() body: UpdateReportStatusDto) {
+    return await this.incidentReportService.updateIncidentReportStatus(
+      body.report_id,
+      body.status,
+    );
+  }
+
+  @Get('/get-incident-reports')
   @UseGuards(AuthGuard('jwt'))
   async getIncidentReportsByChargePoint(
-    @Param('charge_point_id') charge_point_id: string,
+    @Query('charge_point_id') charge_point_id?: string,
+    @Query('staff_id') staff_id?: string,
+    @Query('station_id') station_id?: string,
   ) {
-    return await this.incidentReportService.getIncidentReportsByChargePoint(
-      charge_point_id,
-    );
-  }
-
-  @Get('/get-incident-reports/:staff_id')
-  @UseGuards(AuthGuard('jwt'))
-  async getIncidentReportsByStaff(@Param('staff_id') staff_id: string) {
-    return await this.incidentReportService.getIncidentReportsByStaff(staff_id);
-  }
-
-  @Get('/get-incident-reports/:station_id')
-  @UseGuards(AuthGuard('jwt'))
-  async getIncidentReportsByStation(@Param('station_id') station_id: string) {
-    return await this.incidentReportService.getIncidentReportsByStation(
-      station_id,
-    );
+    if (charge_point_id) {
+      return await this.incidentReportService.getIncidentReportsByChargePoint(
+        charge_point_id,
+      );
+    } else if (staff_id) {
+      return await this.incidentReportService.getIncidentReportsByStaff(
+        staff_id,
+      );
+    } else if (station_id) {
+      return await this.incidentReportService.getIncidentReportsByStation(
+        station_id,
+      );
+    }
   }
 }

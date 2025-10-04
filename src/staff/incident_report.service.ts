@@ -50,18 +50,18 @@ export class IncidentReportService {
 
   // update incident report status
   async updateIncidentReportStatus(
-    id: string,
+    report_id: string,
     status: ReportStatus,
   ): Promise<UpdateResult> {
     // find incident report
     const incidentReport = await this.incidentReportRepo.findOne({
-      where: { id: id },
+      where: { id: report_id },
     });
     if (!incidentReport) {
       throw new NotFoundException('Incident report not found');
     }
     // update incident report status
-    return await this.incidentReportRepo.update(id, { status: status });
+    return await this.incidentReportRepo.update(report_id, { status: status });
   }
 
   // get incident reports by charge point
