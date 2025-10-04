@@ -10,6 +10,10 @@ import { ReservationStatus } from 'src/enums/reservation.enum';
 import { ReservationEntity } from 'src/station/entity/reservation.entity';
 import { RedisService } from 'src/redis/redis.service';
 import { ChargePointService } from 'src/station/charge_point.service';
+import { CreateStaffDto } from './dto/staff/createStaff.dto';
+import { AccountEntity } from 'src/account/entity/account.entity';
+import { Argon2Service } from 'src/argon2/argon2.service';
+import { StationEntity } from 'src/station/entity/station.entity';
 
 @Injectable()
 export class StaffService {
@@ -19,9 +23,50 @@ export class StaffService {
     private readonly reservationRepo: Repository<ReservationEntity>,
     private readonly redisService: RedisService,
     private readonly chargePointService: ChargePointService,
+    private readonly accountRepo: Repository<AccountEntity>,
+    private readonly argon2Service: Argon2Service,
+    private readonly stationRepo: Repository<StationEntity>,
   ) {}
 
-  // get all charge points in station
+  // create staff (create new account, create new staff, link account to staff)
+  async createStaff(staff: CreateStaffDto): Promise<StaffEntity> {
+    const { full_name, email, phone_number, password, role, station_id } =
+      staff;
+    // check if email is already in use
+    const existingStaff = await this.accountRepo.findOne({
+      where: { email: email, phone_number: phone_number },
+    });
+    if (existingStaff) {
+      throw new BadRequestException('Email or phone number already in use');
+    }
+    // hash_password
+    const hashedPassword = await this.argon2Service.hash(password);
+    // create account
+    const nAccount = this.accountRepo.create({
+      full_name: full_name,
+      email: email,
+      phone_number: phone_number,
+      password_hash: hashedPassword,
+      role: role,
+    });
+    await this.accountRepo.save(nAccount);
+    // find station
+    const station = await this.stationRepo.findOne({
+      where: { id: station_id },
+    });
+    if (!station) {
+      throw new NotFoundException('Station not found');
+    }
+    // create staff
+    const nStaff = this.staffRepo.create({
+      account: nAccount,
+      station: station,
+      station_id: station_id,
+    });
+    return await this.staffRepo.save(nStaff);
+  }
+
+  // get all charge points in station by staff(account_id)
   async getChargePointsInStation(
     accountId: string,
   ): Promise<ChargePointEntity[]> {
@@ -60,7 +105,7 @@ export class StaffService {
     return true;
   }
 
-  // start charge point
+  // start charge point with staff role
   async startChargePoint(
     chargePointId: string,
     start_time: Date,
@@ -89,7 +134,7 @@ export class StaffService {
     ]);
   }
 
-  // end charge point
+  // end charge point with staff role
   async endChargePoint(
     chargePointId: string,
     end_time: Date,
@@ -136,6 +181,4 @@ export class StaffService {
     ]);
     return { chargingPrice, parkingFee, totalPrice };
   }
-
-  // create incident
 }
