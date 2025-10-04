@@ -16,43 +16,48 @@ export class UserSubcriptionService {
 
   async createUserSubcription(
     userSubcription: CreatedSubcriptionDto,
-    accountId: string,
-    planId: string,
   ): Promise<UserSubscriptionsEntity> {
-    const userSub = await this.getUserSubscriptions(accountId, planId);
+    const { account_id, plan_id, start_date, end_date } = userSubcription;
+    // get userSubscription
+    const userSub = await this.getUserSubscriptions(account_id, plan_id);
     if (userSub) {
       throw new NotFoundException('User subscription already exists');
     }
+    //create userSubscription
     const newUserSubcription = this.userSubcriptionRepository.create({
-      ...userSubcription,
-      account_id: accountId,
-      plan_id: planId,
+      start_date: start_date,
+      end_date: end_date,
+      account_id: account_id,
+      plan_id: plan_id,
     });
+    //save userSubscription
     return await this.userSubcriptionRepository.save(newUserSubcription);
   }
 
   async getUserSubscriptions(
-    accountId: string,
-    planId: string,
+    account_id: string,
+    plan_id: string,
   ): Promise<UserSubscriptionsEntity | null> {
     return await this.userSubcriptionRepository.findOne({
-      where: { account_id: accountId, plan_id: planId },
+      where: { account_id: account_id, plan_id: plan_id },
     });
   }
 
   async updateUserSubcription(
     userSubcription: UpdatedSubcriptionDto,
-    accountId: string,
-    planId: string,
   ): Promise<UpdateResult> {
-    const userSub = await this.getUserSubscriptions(accountId, planId);
+    const { account_id, plan_id, start_date, end_date } = userSubcription;
+    // get userSubscription
+    const userSub = await this.getUserSubscriptions(account_id, plan_id);
     if (!userSub) {
       throw new NotFoundException('User subscription not found');
     }
+    //update userSubscription
     const updatedUserSub = await this.userSubcriptionRepository.update(
-      { plan_id: planId, account_id: accountId },
+      { plan_id: plan_id, account_id: account_id },
       {
-        ...userSubcription,
+        start_date: start_date,
+        end_date: end_date,
       },
     );
     if (updatedUserSub.affected === 0) {

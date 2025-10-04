@@ -17,10 +17,7 @@ export class PlanEntity {
   @Column()
   name: string;
 
-  @Column()
-  description: string;
-
-  @Column({ type: 'numeric' })
+  @Column({ type: 'float' })
   price: number;
 
   @Column({ type: 'enum', enum: BillingCycle })

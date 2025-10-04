@@ -1,6 +1,14 @@
-import { IsDate, IsNotEmpty } from 'class-validator';
+import { IsDate, IsNotEmpty, IsUUID } from 'class-validator';
 
 export class CreatedSubcriptionDto {
+  @IsUUID()
+  @IsNotEmpty()
+  account_id: string;
+
+  @IsUUID()
+  @IsNotEmpty()
+  plan_id: string;
+
   @IsDate()
   @IsNotEmpty()
   start_date: Date;
