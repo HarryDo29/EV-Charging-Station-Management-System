@@ -53,9 +53,10 @@ export class StaffController {
   @Post('/start-charge-point')
   @UseGuards(AuthGuard('jwt'))
   async startChargePoint(@Body() body: StartChargingDto) {
-    const { charge_point_id, start_time } = body;
+    const { charge_point_id, start_time, day } = body;
     return await this.staffService.startChargePoint(
       charge_point_id,
+      day,
       start_time,
     );
   }

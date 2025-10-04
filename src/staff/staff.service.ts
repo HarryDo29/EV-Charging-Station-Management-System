@@ -14,6 +14,8 @@ import { CreateStaffDto } from './dto/staff/createStaff.dto';
 import { AccountEntity } from 'src/account/entity/account.entity';
 import { Argon2Service } from 'src/argon2/argon2.service';
 import { StationEntity } from 'src/station/entity/station.entity';
+import { ChargingSessionEntity } from 'src/station/entity/charging_session.entity';
+import { SessionStatus } from 'src/enums/sessionStatus.enum';
 
 @Injectable()
 export class StaffService {
@@ -26,6 +28,7 @@ export class StaffService {
     private readonly accountRepo: Repository<AccountEntity>,
     private readonly argon2Service: Argon2Service,
     private readonly stationRepo: Repository<StationEntity>,
+    private readonly chargingSessionRepo: Repository<ChargingSessionEntity>,
   ) {}
 
   // create staff (create new account, create new staff, link account to staff)
@@ -108,8 +111,15 @@ export class StaffService {
   // start charge point with staff role
   async startChargePoint(
     chargePointId: string,
+    day: string,
     start_time: Date,
-  ): Promise<void> {
+  ): Promise<ChargingSessionEntity> {
+    const chargePoint = await this.chargePointRepo.findOne({
+      where: { id: chargePointId },
+    });
+    if (!chargePoint) {
+      throw new NotFoundException('Charge point not found');
+    }
     // check duplicated reservation
     const isDuplicated = await this.checkDupReservation(
       chargePointId,
@@ -118,43 +128,45 @@ export class StaffService {
     if (isDuplicated) {
       throw new BadRequestException('Reservation is duplicated');
     }
-    // create reservation
-    const reservation = this.reservationRepo.create({
-      reservation_day: start_time.toISOString().split('T')[0], // format: YYYY-MM-DD
+    // create charging session
+    const chargingSession = this.chargingSessionRepo.create({
+      day: day,
       start_time: start_time,
       charge_point_id: chargePointId,
-      status: ReservationStatus.RESERVED,
+      charge_point: chargePoint,
     });
     await Promise.all([
-      this.reservationRepo.save(reservation),
+      this.chargingSessionRepo.save(chargingSession),
       this.redisService.set(
-        `StartCharging:${reservation.id}`,
+        `StartChargingSession:${chargingSession.id}`,
         start_time.toISOString(),
       ),
     ]);
+    return chargingSession;
   }
 
   // end charge point with staff role
   async endChargePoint(
-    chargePointId: string,
+    chargingSessionId: string,
     end_time: Date,
   ): Promise<{
     chargingPrice: number;
     parkingFee: number;
     totalPrice: number;
   }> {
-    const reservation = await this.reservationRepo.findOne({
+    // get charging session
+    const chargingSession = await this.chargingSessionRepo.findOne({
       where: {
-        charge_point_id: chargePointId,
-        status: ReservationStatus.RESERVED,
+        id: chargingSessionId,
+        status: SessionStatus.IN_PROGRESS,
       },
     });
-    if (!reservation) {
+    if (!chargingSession) {
       throw new NotFoundException('Reservation not found');
     }
     // get start charging time from redis
     const startChargingTime = await this.redisService.get(
-      `StartCharging:${reservation.id}`,
+      `StartChargingSession:${chargingSession.id}`,
     );
     if (!startChargingTime) {
       throw new NotFoundException('Start charging time not found');
@@ -165,19 +177,19 @@ export class StaffService {
       (1000 * 60 * 60);
     // total price
     const { chargingPrice, parkingFee, totalPrice } =
-      await this.chargePointService.calChargingTimeAndPrice(
-        reservation.id,
+      this.chargePointService.calChargingTimeAndPrice(
+        chargingSession,
         chargingTime,
       );
-    // remove reservation from redis
-    // update reservation
+    // remove start charging time from redis
+    // update charging session
     await Promise.all([
-      this.reservationRepo.update(reservation.id, {
+      this.chargingSessionRepo.update(chargingSession.id, {
         end_time: end_time,
-        status: ReservationStatus.COMPLETED,
+        status: SessionStatus.COMPLETED,
         total_time: chargingTime,
       }),
-      this.redisService.del(`StartCharging:${reservation.id}`),
+      this.redisService.del(`StartChargingSession:${chargingSession.id}`),
     ]);
     return { chargingPrice, parkingFee, totalPrice };
   }

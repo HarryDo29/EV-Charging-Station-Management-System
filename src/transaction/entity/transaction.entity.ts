@@ -2,12 +2,13 @@ import { AccountEntity } from 'src/account/entity/account.entity';
 import { TransactionMethod } from 'src/enums/transactionMethod.enum';
 import { TransactionStatus } from 'src/enums/transactionStatus.enum';
 import { ChargePointEntity } from 'src/station/entity/charge_point.entity';
-import { ReservationEntity } from 'src/station/entity/reservation.entity';
+import { ChargingSessionEntity } from 'src/station/entity/charging_session.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -39,11 +40,13 @@ export class TransactionEntity {
   @UpdateDateColumn()
   updated_at: Date;
 
+  // relationship with account
   @ManyToOne(() => AccountEntity, (account) => account.transactions)
   account: AccountEntity;
   @Column()
   account_id: string;
 
+  // relationship with charge point
   @ManyToOne(
     () => ChargePointEntity,
     (charge_point) => charge_point.transactions,
@@ -52,8 +55,12 @@ export class TransactionEntity {
   @Column({ nullable: true })
   charge_point_id: string;
 
-  @ManyToOne(() => ReservationEntity, (reservation) => reservation.transactions)
-  reservation: ReservationEntity;
+  // relationship with charging session
+  @OneToOne(
+    () => ChargingSessionEntity,
+    (charging_session) => charging_session.transaction,
+  )
+  charging_session: ChargingSessionEntity;
   @Column({ nullable: true })
-  reservation_id: string;
+  charging_session_id: string;
 }

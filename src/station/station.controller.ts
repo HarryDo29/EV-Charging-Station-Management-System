@@ -10,6 +10,8 @@ import { Roles } from 'src/auth/decorator/role.decorator';
 import { UpdateStationDto } from './dto/station/updateStation.dto';
 import { StationStatus } from 'src/enums/stationStatus.enum';
 import { UpdateChargePointDto } from './dto/charge_point/updateChargePoint.dto';
+import { CreateChargingSessionDto } from './dto/charging_session/createChargingSession.dto';
+import { EndChargingSessionDto } from './dto/charging_session/endChargingSession.dto';
 
 @Controller('station')
 export class StationController {
@@ -18,7 +20,7 @@ export class StationController {
     private readonly chargePointService: ChargePointService,
   ) {}
 
-  // STATION
+  //___________________________________________STATION___________________________________________
   // create station
   @Post('/create-station')
   @UseGuards(AuthGuard('jwt'))
@@ -43,7 +45,7 @@ export class StationController {
     return this.stationService.updateStationStatus(id, status);
   }
 
-  // CHARGE-POINT
+  //___________________________________________CHARGE-POINT___________________________________________
   // create charge-point
   @Post('/:stationId/create-charge-point')
   @UseGuards(AuthGuard('jwt'))
@@ -86,5 +88,20 @@ export class StationController {
       stationId,
       status,
     );
+  }
+
+  //___________________________________________CHARGING-SESSION___________________________________________
+  // start charging
+  @Post('/charging-session/start-charging')
+  @UseGuards(AuthGuard('jwt'))
+  startCharging(@Body() body: CreateChargingSessionDto) {
+    return this.chargePointService.startCharging(body);
+  }
+
+  // end charging
+  @Post('/charging-session/end-charging')
+  @UseGuards(AuthGuard('jwt'))
+  endCharging(@Body() body: EndChargingSessionDto) {
+    return this.chargePointService.endCharging(body);
   }
 }

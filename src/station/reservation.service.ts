@@ -89,10 +89,6 @@ export class ReservationService {
       end_time: end_time,
       account_id: accountId,
       charge_point_id: charge_point_id,
-      total_time: this.chargePointService.calculateTotalTime(
-        start_time,
-        end_time,
-      ),
     });
     // send email to account
     await this.mailService.sendBookingConfirmation(

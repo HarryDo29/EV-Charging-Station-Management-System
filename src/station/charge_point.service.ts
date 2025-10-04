@@ -11,6 +11,10 @@ import { RedisService } from 'src/redis/redis.service';
 import { ReservationStatus } from 'src/enums/reservation.enum';
 import { MailService } from 'src/mail/mail.service';
 import { TransactionService } from 'src/transaction/transaction.service';
+import { ChargingSessionEntity } from './entity/charging_session.entity';
+import { CreateChargingSessionDto } from './dto/charging_session/createChargingSession.dto';
+import { EndChargingSessionDto } from './dto/charging_session/endChargingSession.dto';
+import { SessionStatus } from 'src/enums/sessionStatus.enum';
 
 @Injectable()
 export class ChargePointService {
@@ -22,6 +26,8 @@ export class ChargePointService {
     @InjectRepository(ReservationEntity)
     private readonly reservationRepo: Repository<ReservationEntity>,
     private readonly redisService: RedisService,
+    @InjectRepository(ChargingSessionEntity)
+    private readonly chargingSessionRepo: Repository<ChargingSessionEntity>,
     private readonly mailService: MailService,
     private readonly transactionService: TransactionService,
   ) {}
@@ -114,83 +120,123 @@ export class ChargePointService {
   */
 
   // calculate time charging and total price
-  async calChargingTimeAndPrice(
-    reservationId: string,
+  calChargingTimeAndPrice(
+    chargingSession: ChargingSessionEntity,
     chargingTime: number,
-  ): Promise<{
+  ): {
+    totalKwh: number;
     chargingPrice: number;
     parkingFee: number;
     totalPrice: number;
-  }> {
-    const reservation = await this.reservationRepo.findOne({
-      where: { id: reservationId },
-      relations: ['charge_point'],
-    });
-    if (!reservation) {
-      throw new NotFoundException('Reservation not found');
-    }
+  } {
     // calculate total price
-    const totalKwh = reservation.charge_point.max_power_kw * chargingTime;
-    const chargingPrice = totalKwh * reservation.charge_point.price_per_kwh;
+    const totalKwh = chargingSession.charge_point.max_power_kw * chargingTime;
+    const chargingPrice = totalKwh * chargingSession.charge_point.price_per_kwh;
     const parkingFee =
-      chargingTime * reservation.charge_point.parking_fee_per_hour;
+      chargingTime * chargingSession.charge_point.parking_fee_per_hour;
     const totalPrice = chargingPrice + parkingFee;
-    return { chargingPrice, parkingFee, totalPrice };
+    return { totalKwh, chargingPrice, parkingFee, totalPrice };
   }
 
   // start charging
-  async startCharging(reservationId: string): Promise<void> {
+  async startCharging(
+    chargingSession: CreateChargingSessionDto,
+  ): Promise<ChargingSessionEntity> {
+    const { reservation_id, start_time, day } = chargingSession;
+    // get reservation
     const reservation = await this.reservationRepo.findOne({
-      where: { id: reservationId },
+      where: {
+        id: reservation_id,
+        status: ReservationStatus.PENDING,
+        start_time: start_time,
+        reservation_day: day,
+      },
     });
     if (!reservation) {
       throw new NotFoundException('Reservation not found');
     }
+    // create charging session
+    const nChargingSession = this.chargingSessionRepo.create({
+      charge_point: reservation.charge_point,
+      charge_point_id: reservation.charge_point_id,
+      reservation: reservation,
+      reservation_id: reservation_id,
+      start_time: start_time,
+      day: day,
+    });
     // update reservation status && set reservation to redis
     await Promise.all([
-      this.reservationRepo.update(reservationId, {
+      // create charging session (save to db)
+      this.chargingSessionRepo.save(nChargingSession),
+      // update reservation status
+      this.reservationRepo.update(reservation_id, {
         status: ReservationStatus.RESERVED,
       }),
+      // set reservation start time to redis
       this.redisService.set(
-        `StartCharging:${reservationId}`,
-        new Date().toISOString(),
+        `StartCharging:${reservation_id}`,
+        start_time.toISOString(),
       ),
     ]);
+    return nChargingSession;
   }
 
   // end charging
-  async endCharging(reservationId: string): Promise<{
+  async endCharging(chargingSessionDto: EndChargingSessionDto): Promise<{
     chargingPrice: number;
     parkingFee: number;
     totalPrice: number;
     accountId: string;
   }> {
+    const { charging_session_id, end_time } = chargingSessionDto;
+    // get charging session
+    const chargingSession = await this.chargingSessionRepo.findOne({
+      where: {
+        id: charging_session_id,
+        status: SessionStatus.IN_PROGRESS,
+      },
+      relations: ['reservation'],
+    });
+    if (!chargingSession) {
+      throw new NotFoundException('Charging session not found');
+    }
+    // get reservation
     const reservation = await this.reservationRepo.findOne({
-      where: { id: reservationId },
+      where: { id: chargingSession.reservation_id },
     });
     if (!reservation) {
       throw new NotFoundException('Reservation not found');
     }
-    // update reservation status
-    await this.reservationRepo.update(reservationId, {
-      status: ReservationStatus.COMPLETED,
-    });
     // get start charging time from redis
     const startChargingTime = await this.redisService.get(
-      `StartCharging:${reservationId}`,
+      `StartCharging:${reservation.id}`,
     );
     if (!startChargingTime) {
       throw new NotFoundException('Start charging time not found');
     }
     // calculate charging time
     const chargingTime =
-      (new Date().getTime() - new Date(startChargingTime).getTime()) /
+      (end_time.getTime() - new Date(startChargingTime).getTime()) /
       (1000 * 60 * 60);
     // total price
-    const { chargingPrice, parkingFee, totalPrice } =
-      await this.calChargingTimeAndPrice(reservationId, chargingTime);
+    const { totalKwh, chargingPrice, parkingFee, totalPrice } =
+      this.calChargingTimeAndPrice(chargingSession, chargingTime);
+    // update
+    await Promise.all([
+      // update charging session
+      this.chargingSessionRepo.update(chargingSession.id, {
+        end_time: end_time,
+        total_time: chargingTime,
+        energy_consumed_kwh: totalKwh,
+        total_price: totalPrice,
+      }),
+      // update reservation status
+      this.reservationRepo.update(reservation.id, {
+        status: ReservationStatus.COMPLETED,
+      }),
+    ]);
     // remove reservation from redis
-    await this.redisService.del(`StartCharging:${reservationId}`);
+    await this.redisService.del(`StartCharging:${reservation.id}`);
     return {
       chargingPrice,
       parkingFee,
