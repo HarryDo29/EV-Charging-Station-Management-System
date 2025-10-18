@@ -49,7 +49,7 @@ export class MailService {
   // send payment success email
   async sendPaymentSuccess(to: string, transaction: TransactionEntity) {
     const { identifier } = transaction.charge_point;
-    const { start_time, end_time } = transaction.reservation;
+    const { start_time, end_time } = transaction.charging_session;
     await this.mailerService.sendMail({
       to,
       subject: 'Payment Success - EV Charger',
@@ -69,7 +69,7 @@ export class MailService {
   // send payment failed email
   async sendPaymentFailed(to: string, transaction: TransactionEntity) {
     const { identifier } = transaction.charge_point;
-    const { start_time, end_time } = transaction.reservation;
+    const { start_time, end_time } = transaction.charging_session;
     await this.mailerService.sendMail({
       to,
       subject: 'Payment Failed - EV Charger',

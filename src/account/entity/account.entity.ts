@@ -14,6 +14,7 @@ import { UserSubscriptionsEntity } from 'src/plan/entity/user_subscriptions.enti
 import { StaffEntity } from 'src/staff/entity/staff.entity';
 import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 import { ReservationEntity } from 'src/station/entity/reservation.entity';
+import { RefreshTokenEntity } from 'src/refreshToken/entity/refreshToken.entity';
 
 @Entity('accounts')
 export class AccountEntity implements IAccount {
@@ -49,6 +50,9 @@ export class AccountEntity implements IAccount {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToOne(() => RefreshTokenEntity, (refresh_token) => refresh_token.account)
+  refresh_token: RefreshTokenEntity;
 
   @OneToMany(() => VehicleEntity, (vehicle) => vehicle.account)
   vehicles: VehicleEntity[];

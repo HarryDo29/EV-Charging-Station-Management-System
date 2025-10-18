@@ -83,7 +83,6 @@ export class PaymentService {
   async handleWebhook(webhookBody: Webhook) {
     try {
       const verifiedData = await this.payOS.webhooks.verify(webhookBody);
-
       console.log('PayOS Webhook verified data:', verifiedData);
 
       // Logic to handle business:
