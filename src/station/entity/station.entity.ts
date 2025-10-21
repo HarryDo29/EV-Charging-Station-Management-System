@@ -50,10 +50,10 @@ export class StationEntity {
   pricePerKwh: number; // unit: VND/kWh
 
   @Column('int', { default: 0 })
-  totalPorts: number;
+  totalChargePoints: number;
 
   @Column('int', { default: 0 })
-  availablePorts: number;
+  availableChargePoints: number;
 
   @CreateDateColumn()
   created_at: Date;

@@ -45,6 +45,12 @@ export class AccountEntity implements IAccount {
   @Column({ default: false })
   is_oauth2: boolean;
 
+  @Column({ nullable: true })
+  avatar_url: string;
+
+  @Column({ nullable: true, unique: true })
+  google_id: string;
+
   @CreateDateColumn()
   created_at: Date;
 

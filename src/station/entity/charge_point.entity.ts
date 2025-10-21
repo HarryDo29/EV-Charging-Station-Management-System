@@ -28,13 +28,13 @@ export class ChargePointEntity {
   connector_type: ConnectorType;
 
   @Column({ nullable: false })
-  max_power_kw: number; // unit: kW
+  maxPowerKw: number; // unit: kW
 
   @Column({ nullable: false })
-  price_per_kwh: number; // unit: VND/kWh
+  pricePerKwh: number; // unit: VND/kWh
 
   @Column({ nullable: false })
-  parking_fee_per_hour: number; // unit: VND/hour
+  parkingFeePerHour: number; // unit: VND/hour
 
   @Column({ default: false })
   reserved_status: boolean;

@@ -4,12 +4,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { AccountEntity } from 'src/account/entity/account.entity';
 import { IVehicle } from '../interface/vehicle.interface';
 import { ConnectorType } from 'src/enums/connector.enum';
+import { ReservationEntity } from 'src/station/entity/reservation.entity';
 
 @Entity('vehicles')
 export class VehicleEntity implements IVehicle {
@@ -17,7 +19,7 @@ export class VehicleEntity implements IVehicle {
   id: string;
 
   @Column()
-  car_makes: string;
+  car_maker: string;
 
   @Column()
   models: string;
@@ -51,4 +53,7 @@ export class VehicleEntity implements IVehicle {
 
   @Column()
   account_id: string; // FK column to store UUID of account
+
+  @OneToMany(() => ReservationEntity, (reservation) => reservation.vehicle)
+  reservations: ReservationEntity[];
 }

@@ -2,8 +2,7 @@ import { IAccount } from 'src/account/interface/account.interface';
 
 export interface IVehicle {
   id: string;
-  account_id: string;
-  car_makes: string;
+  car_maker: string;
   models: string;
   license_plate: string;
   connector_type: string;
@@ -12,4 +11,5 @@ export interface IVehicle {
   status: boolean;
 
   account?: IAccount;
+  account_id: string;
 }

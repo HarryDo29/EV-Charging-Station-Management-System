@@ -105,7 +105,7 @@ export class VehicleService {
     return await this.vehicleRepo.find({
       relations: ['account'],
       where: {
-        car_makes: car_makes ? car_makes : undefined,
+        car_maker: car_makes ? car_makes : undefined,
         connector_type: connector_type ? connector_type : undefined,
       },
     });

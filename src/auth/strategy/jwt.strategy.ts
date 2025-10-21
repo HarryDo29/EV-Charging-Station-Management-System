@@ -5,6 +5,19 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Role } from 'src/enums/role.enum';
 import { AccountService } from 'src/account/account.service';
 import { AuthenticatedUserDto } from '../dto/authenticated-user.dto';
+import type { Request as RequestExpress } from 'express';
+
+// Custom extractor to get accessToken from cookies
+const cookieExtractor = (req: RequestExpress): string | null => {
+  let token: string | null = null;
+  if (req && req.cookies && typeof req.cookies === 'object') {
+    // Extract accessToken specifically from cookies
+    const cookie = req.cookies as Record<string, unknown>;
+    token =
+      typeof cookie['accessToken'] === 'string' ? cookie['accessToken'] : null;
+  }
+  return token;
+};
 
 // Define data type for payload
 interface JwtPayload {
@@ -21,7 +34,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   ) {
     super({
       // 1. Specify how to extract token from request
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      // Support both cookies and Authorization header
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        cookieExtractor, // First try to get from cookies
+        ExtractJwt.fromAuthHeaderAsBearerToken(), // Fallback to Authorization header
+      ]),
       // 2. Do not skip when token expires
       ignoreExpiration: false,
       // 3. Provide secret key to Passport to verify token signature

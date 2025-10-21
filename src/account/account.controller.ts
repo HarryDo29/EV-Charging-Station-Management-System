@@ -31,12 +31,10 @@ export class AccountController {
   @Get('/get-account')
   @UseGuards(AuthGuard('jwt'))
   async getAccount(@Request() req: RequestExpress) {
+    console.log('req.user', req.user);
     const acc = req.user as AuthenticatedUserDto;
-    return await this.accountService.getAccount(acc.id);
+    const account = await this.accountService.getAccount(acc.id);
+    console.log('account', account);
+    return account;
   }
-
-  // @Delete('/delete/:id')
-  // deleteAccount(@Param('id') id: string) {
-  //   return this.accountService.deleteAccount(id);
-  // }
 }

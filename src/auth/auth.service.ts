@@ -31,7 +31,7 @@ export class AuthService {
   ) {}
 
   async validateAccount(oauth2Dto: OAuth2Dto): Promise<AccountEntity> {
-    const { email, name } = oauth2Dto;
+    const { email, name, avatar_url, google_id } = oauth2Dto;
     // check if account already exists
     const account = await this.accountService.findAccountByEmail(email);
     if (account) {
@@ -42,11 +42,17 @@ export class AuthService {
     nCreated.email = email;
     nCreated.password = '';
     nCreated.full_name = name;
+    nCreated.avatar_url = avatar_url;
+    nCreated.google_id = google_id;
     const newAccount = await this.accountService.createOAuth2Account(nCreated);
     return newAccount;
   }
 
-  async loginByOAuth2(account: AccountEntity): Promise<UserResponseDto> {
+  async loginByOAuth2(account: AccountEntity): Promise<{
+    userResponse: UserResponseDto;
+    accessToken: string;
+    refreshToken: string;
+  }> {
     // generate access and refresh tokens
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.sign({
@@ -66,14 +72,26 @@ export class AuthService {
     // set refresh token to database
     await this.refreshTokenService.updateRefreshToken(account.id, refreshToken);
     return {
-      name: account.full_name,
-      role: account.role,
+      userResponse: {
+        id: account.id,
+        full_name: account.full_name,
+        email: account.email,
+        phone_number: account.phone_number,
+        is_verified: account.is_verified,
+        is_active: account.is_active,
+        is_oauth2: account.is_oauth2,
+        role: account.role,
+      },
       accessToken: accessToken,
       refreshToken: refreshToken,
     };
   }
 
-  async registerByEmail(registerDto: RegisterDto): Promise<UserResponseDto> {
+  async registerByEmail(registerDto: RegisterDto): Promise<{
+    userResponse: UserResponseDto;
+    accessToken: string;
+    refreshToken: string;
+  }> {
     const { email, password, full_name } = registerDto;
     // check if account already exists
     const account = await this.accountService.findAccountByEmail(email);
@@ -107,14 +125,26 @@ export class AuthService {
       refreshToken,
     );
     return {
-      name: newAccount.full_name,
-      role: newAccount.role,
+      userResponse: {
+        id: newAccount.id,
+        full_name: newAccount.full_name,
+        email: newAccount.email,
+        phone_number: newAccount.phone_number,
+        role: newAccount.role,
+        is_verified: newAccount.is_verified,
+        is_active: newAccount.is_active,
+        is_oauth2: newAccount.is_oauth2,
+      },
       accessToken: accessToken,
       refreshToken: refreshToken,
     };
   }
 
-  async loginByEmail(loginDto: LoginDto): Promise<UserResponseDto> {
+  async loginByEmail(loginDto: LoginDto): Promise<{
+    userResponse: UserResponseDto;
+    accessToken: string;
+    refreshToken: string;
+  }> {
     const { email, password } = loginDto;
     // find account by email
     const account = await this.accountService.findAccountByEmail(email);
@@ -147,8 +177,16 @@ export class AuthService {
     // set refresh token to database
     await this.refreshTokenService.updateRefreshToken(account.id, refreshToken);
     return {
-      name: account.full_name,
-      role: account.role,
+      userResponse: {
+        id: account.id,
+        full_name: account.full_name,
+        email: account.email,
+        phone_number: account.phone_number,
+        is_verified: account.is_verified,
+        is_active: account.is_active,
+        is_oauth2: account.is_oauth2,
+        role: account.role,
+      },
       accessToken: accessToken,
       refreshToken: refreshToken,
     };
@@ -245,5 +283,12 @@ export class AuthService {
     await this.accountService.updateAccount(id, {
       password_hash: hashedPassword,
     });
+  }
+
+  async logout(account: AccountEntity): Promise<void> {
+    // remove access token from redis
+    await this.redisService.del(`id:${account.id}`);
+    // remove refresh token from database
+    await this.refreshTokenService.updateRefreshToken(account.id, '');
   }
 }

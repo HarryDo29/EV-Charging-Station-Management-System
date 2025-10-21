@@ -6,11 +6,13 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ReservationStatus } from 'src/enums/reservation.enum';
 import { ChargePointEntity } from './charge_point.entity';
 import { AccountEntity } from 'src/account/entity/account.entity';
 import { ChargingSessionEntity } from './charging_session.entity';
+import { VehicleEntity } from 'src/vehicle/entity/vehicle.entity';
 
 @Entity('reservations')
 export class ReservationEntity {
@@ -47,6 +49,13 @@ export class ReservationEntity {
   charge_point: ChargePointEntity;
   @Column()
   charge_point_id: string;
+
+  // relationship with vehicle
+  @ManyToOne(() => VehicleEntity, (vehicle) => vehicle.reservations)
+  @JoinColumn({ name: 'vehicle_id' })
+  vehicle: VehicleEntity;
+  @Column()
+  vehicle_id: string;
 
   // relationship with account
   @ManyToOne(() => AccountEntity, (account) => account.reservations)

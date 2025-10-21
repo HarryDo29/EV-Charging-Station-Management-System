@@ -24,7 +24,8 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, 'google') {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: Profile) {
-    const { name, emails } = profile;
+    console.log('profile', profile);
+    const { id, name, emails, photos } = profile;
     // console.log('profile');
     // console.log(profile);
     // console.log('accessToken');
@@ -35,9 +36,11 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, 'google') {
     }
     // Xử lý profile từ nhà cung cấp (Google)
     const user: OAuth2Dto = {
+      google_id: id,
       email: emails[0].value,
       name: name?.givenName || '',
       accessToken,
+      avatar_url: photos?.[0]?.value || '',
     };
 
     // Gọi service để lưu hoặc kiểm tra user

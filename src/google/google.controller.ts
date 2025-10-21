@@ -1,9 +1,11 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, Response, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import type { Request } from 'express';
+import type {
+  Request as RequestExpress,
+  Response as ResponseExpress,
+} from 'express';
 import { AuthService } from 'src/auth/auth.service';
 import { AccountEntity } from 'src/account/entity/account.entity';
-import { UserResponseDto } from 'src/account/dto/userResponse.dto';
 
 @Controller('google')
 export class GoogleController {
@@ -17,10 +19,25 @@ export class GoogleController {
 
   @Get('callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthCallback(@Req() req: Request): Promise<UserResponseDto> {
+  async googleAuthCallback(
+    @Req() req: RequestExpress,
+    @Response() response: ResponseExpress,
+  ): Promise<void> {
     const user: AccountEntity = req.user as AccountEntity; // User đã được validate từ strategy
-    const userResponse = await this.authService.loginByOAuth2(user);
+    const { accessToken, refreshToken } =
+      await this.authService.loginByOAuth2(user);
+    response.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      // secure: process.env.NODE_ENV === 'production',
+      expires: new Date(Date.now() + 15 * 60 * 1000), // 15 phút
+    });
+    response.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      // secure: process.env.NODE_ENV === 'production',
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 ngày
+    });
     // Tạo session hoặc JWT nếu cần
-    return userResponse; // Chuyển hướng sau khi xác thực
+    // Chuyển hướng sau khi xác thực
+    response.redirect('http://localhost:5173/');
   }
 }

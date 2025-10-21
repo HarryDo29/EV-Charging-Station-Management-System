@@ -4,7 +4,7 @@ import {
   Body,
   UseGuards,
   Request,
-  Param,
+  Response,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/registerAccount.dto';
@@ -12,8 +12,12 @@ import { LoginDto } from './dto/loginAccount.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AccountService } from 'src/account/account.service';
 import { AuthenticatedUserDto } from './dto/authenticated-user.dto';
-import type { Request as RequestExpress } from 'express';
+import type {
+  Request as RequestExpress,
+  Response as ResponseExpress,
+} from 'express';
 import { ChangePasswordDto } from './dto/changePassword.dto';
+import { UserResponseDto } from 'src/account/dto/userResponse.dto';
 
 @Controller('/auth')
 export class AuthController {
@@ -23,13 +27,43 @@ export class AuthController {
   ) {}
 
   @Post('/register')
-  async register(@Body() registerDto: RegisterDto) {
-    return await this.authService.registerByEmail(registerDto);
+  async register(
+    @Body() registerDto: RegisterDto,
+    @Response({ passthrough: true }) response: ResponseExpress,
+  ): Promise<UserResponseDto> {
+    const { userResponse, accessToken, refreshToken } =
+      await this.authService.registerByEmail(registerDto);
+    response.cookie('accessToken', accessToken, {
+      httpOnly: true, // Bắt buộc
+      // secure: process.env.NODE_ENV === 'production',
+      expires: new Date(Date.now() + 15 * 60 * 1000), // 15 phút
+    });
+    response.cookie('refreshToken', refreshToken, {
+      httpOnly: true, // Bắt buộc
+      // secure: process.env.NODE_ENV === 'production',
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 ngày
+    });
+    return userResponse;
   }
 
   @Post('/login')
-  async login(@Body() loginDto: LoginDto) {
-    return await this.authService.loginByEmail(loginDto);
+  async loginByEmail(
+    @Body() loginDto: LoginDto,
+    @Response({ passthrough: true }) response: ResponseExpress,
+  ): Promise<UserResponseDto> {
+    const { userResponse, accessToken, refreshToken } =
+      await this.authService.loginByEmail(loginDto);
+    response.cookie('accessToken', accessToken, {
+      httpOnly: true, // Bắt buộc
+      // secure: process.env.NODE_ENV === 'production',
+      expires: new Date(Date.now() + 15 * 60 * 1000), // 15 phút
+    });
+    response.cookie('refreshToken', refreshToken, {
+      httpOnly: true, // Bắt buộc
+      // secure: process.env.NODE_ENV === 'production',
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 ngày
+    });
+    return userResponse;
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -51,11 +85,28 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('/change-password/:id')
+  @Post('/change-password')
   async changePassword(
-    @Param('id') id: string,
     @Body() changePasswordDto: ChangePasswordDto,
+    @Request() req: RequestExpress,
   ) {
-    return await this.authService.changePassword(id, changePasswordDto);
+    const acc = req.user as AuthenticatedUserDto;
+    return await this.authService.changePassword(acc.id, changePasswordDto);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('/logout')
+  async logout(
+    @Request() req: RequestExpress,
+    @Response({ passthrough: true }) response: ResponseExpress,
+  ): Promise<{ message: string }> {
+    const acc = req.user as AuthenticatedUserDto;
+    const account = await this.accountService.findAccountById(acc.id);
+    await this.authService.logout(account!);
+    response.clearCookie('accessToken');
+    response.clearCookie('refreshToken');
+    return {
+      message: 'Logged out successfully',
+    };
   }
 }

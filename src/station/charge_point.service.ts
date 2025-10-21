@@ -130,10 +130,10 @@ export class ChargePointService {
     totalPrice: number;
   } {
     // calculate total price
-    const totalKwh = chargingSession.charge_point.max_power_kw * chargingTime;
-    const chargingPrice = totalKwh * chargingSession.charge_point.price_per_kwh;
+    const totalKwh = chargingSession.charge_point.maxPowerKw * chargingTime;
+    const chargingPrice = totalKwh * chargingSession.charge_point.pricePerKwh;
     const parkingFee =
-      chargingTime * chargingSession.charge_point.parking_fee_per_hour;
+      chargingTime * chargingSession.charge_point.parkingFeePerHour;
     const totalPrice = chargingPrice + parkingFee;
     return { totalKwh, chargingPrice, parkingFee, totalPrice };
   }
