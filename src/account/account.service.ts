@@ -6,6 +6,7 @@ import { Argon2Service } from 'src/argon2/argon2.service';
 import { CreateAccountDto } from './dto/createdAccount.dto';
 import { UpdateAccountDto } from './dto/updatedAccount.dto';
 import { CreateOAuth2AccountDto } from './dto/createdOAuth2Account.dto';
+import { UserResponseDto } from './dto/userResponse.dto';
 
 @Injectable()
 export class AccountService {
@@ -78,13 +79,24 @@ export class AccountService {
     return await this.accountRepository.update(id, { is_active: false });
   }
 
-  async getAccount(id: string): Promise<AccountEntity> {
-    const acc = await this.accountRepository.findOne({
+  async getAccount(id: string): Promise<UserResponseDto> {
+    const account = await this.accountRepository.findOne({
       where: { id },
+      select: {
+        id: true,
+        full_name: true,
+        email: true,
+        phone_number: true,
+        role: true,
+        is_verified: true,
+        is_active: true,
+        is_oauth2: true,
+        avatar_url: true,
+      },
     });
-    if (!acc) {
+    if (!account) {
       throw new NotFoundException('Account not found');
     }
-    return acc;
+    return account;
   }
 }

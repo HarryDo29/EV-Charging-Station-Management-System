@@ -55,17 +55,53 @@ export class StationService {
   }
 
   // create station
-  async createStation(station: CreateStationDto): Promise<StationEntity> {
+  async createStation(stations: CreateStationDto[]): Promise<StationEntity[]> {
     // check if station is duplicate
-    const isDuplicate = await this.checkDuplicateStation(
-      station.latitude,
-      station.longitude,
-    );
-    if (isDuplicate) {
-      throw new BadRequestException('Station is duplicate');
+    const nStations: StationEntity[] = [];
+    for (const station of stations) {
+      // console.log('station', station);
+      const isDuplicate = await this.checkDuplicateStation(
+        station.latitude,
+        station.longitude,
+      );
+      if (isDuplicate) {
+        throw new BadRequestException('Station is duplicate');
+      }
+      const nStation = this.stationRepo.create({ ...station });
+      nStations.push(nStation);
+      await this.stationRepo.save(nStation);
     }
-    const nStation = this.stationRepo.create({ ...station });
-    return await this.stationRepo.save(nStation);
+    return nStations;
+  }
+
+  // get all stations
+  async getAllStations(): Promise<StationEntity[]> {
+    const stations = await this.stationRepo.find();
+    // console.log('stations', stations);
+    return stations;
+  }
+
+  // get station increasing order by (latitude, longitude)
+  async findStationsNeareast(
+    latitude: number,
+    longitude: number,
+  ): Promise<StationEntity[]> {
+    const distanceAround = 5; // 5km
+    const stations = await this.stationRepo
+      .createQueryBuilder('station')
+      .addSelect(
+        `ST_Distance(POINT(station.longitude, station.latitude), POINT(${longitude}, ${latitude})) / 1000`, // Chia 1000 để đổi ra km
+        'distance_in_km', // Đặt tên cho cột "ảo"
+      )
+      .where(
+        `ST_DWithin(POINT(station.longitude, station.latitude), POINT(${longitude}, ${latitude}), :radius)`,
+        { radius: distanceAround * 1000 },
+      )
+      .orderBy('distance_in_km', 'ASC')
+      .take(20)
+      .skip(0)
+      .getMany();
+    return stations;
   }
 
   // update station (all fields)

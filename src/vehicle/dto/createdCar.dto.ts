@@ -4,14 +4,13 @@ import {
   IsNumber,
   IsEnum,
   IsBoolean,
-  IsUUID,
 } from 'class-validator';
 import { ConnectorType } from 'src/enums/connector.enum';
 
 export class CreateVehicleDto {
   @IsString()
   @IsNotEmpty()
-  car_makes: string;
+  car_maker: string;
 
   @IsString()
   @IsNotEmpty()
@@ -36,9 +35,4 @@ export class CreateVehicleDto {
   @IsBoolean()
   @IsNotEmpty()
   status: boolean;
-
-  @IsString()
-  @IsUUID()
-  @IsNotEmpty()
-  account_id: string;
 }

@@ -29,8 +29,8 @@ export class VehicleController {
     @Request() req: RequestExpress,
   ) {
     const acc = req.user as AuthenticatedUserDto;
-    createVehicleDto.account_id = acc.id;
-    return this.vehicleService.createVehicle(createVehicleDto);
+    console.log('vehicle controller createVehicleDto', createVehicleDto);
+    return this.vehicleService.createVehicle(createVehicleDto, acc.id);
   }
 
   @Get('/get-all-vehicles')

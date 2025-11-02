@@ -28,14 +28,14 @@ export class GoogleController {
       await this.authService.loginByOAuth2(user);
     response.cookie('accessToken', accessToken, {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === 'production',
       expires: new Date(Date.now() + 15 * 60 * 1000), // 15 phút
     });
+    console.log('save access token to cookie');
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === 'production',
       expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 ngày
     });
+    console.log('save refresh token to cookie');
     // Tạo session hoặc JWT nếu cần
     // Chuyển hướng sau khi xác thực
     response.redirect('http://localhost:5173/');

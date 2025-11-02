@@ -20,6 +20,9 @@ import { CronModule } from './cron/cron.module';
 import { BullModule } from '@nestjs/bullmq';
 import { QueueOptions } from 'bullmq';
 import { QueueModule } from './queue/queue.module';
+import { R2StorageModule } from './r2Storage/r2Storage.module';
+import { StationModule } from './station/station.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -51,12 +54,15 @@ import { QueueModule } from './queue/queue.module';
     AuthModule,
     AccountModule,
     VehicleModule,
+    StationModule,
     PaymentModule,
     TransactionModule,
     PlanModule,
     GoogleModule,
     QueueModule,
     CronModule,
+    R2StorageModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [

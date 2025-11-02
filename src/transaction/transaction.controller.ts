@@ -5,13 +5,12 @@ import { CreateTransactionDto } from './dto/createTransaction.dto';
 import { Body, Request } from '@nestjs/common';
 import { AuthenticatedUserDto } from 'src/auth/dto/authenticated-user.dto';
 import type { Request as RequestExpress } from 'express';
-import { TransactionMethod } from 'src/enums/transactionMethod.enum';
 
 @Controller('transaction')
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
-  @Post('/create-transaction')
+  @Post('')
   @UseGuards(AuthGuard('jwt'))
   async createTransaction(
     @Body() body: CreateTransactionDto,
@@ -19,8 +18,9 @@ export class TransactionController {
   ) {
     const acc = req.user as AuthenticatedUserDto;
     const transaction = new CreateTransactionDto();
-    transaction.amount = body.amount * 100;
-    transaction.method = TransactionMethod.PAYOS;
+    transaction.amount = body.amount;
+    transaction.type = body.type;
+    transaction.order_id = body.order_id;
     return await this.transactionService.createTransaction(transaction, acc.id);
   }
 

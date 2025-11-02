@@ -1,19 +1,23 @@
-import { IsDate, IsDateString, IsNotEmpty, IsUUID } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateReservationDto {
   @IsDateString()
   @IsNotEmpty()
   reservation_day: string; // format: YYYY-MM-DD
 
-  @IsDate()
+  @IsString()
   @IsNotEmpty()
-  start_time: Date;
+  start_time: string;
 
-  @IsDate()
+  @IsString()
   @IsNotEmpty()
-  end_time: Date;
+  end_time: string;
 
   @IsUUID()
   @IsNotEmpty()
   charge_point_id: string;
+
+  @IsUUID()
+  @IsNotEmpty()
+  vehicle_id: string;
 }

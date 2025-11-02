@@ -16,6 +16,7 @@ import { Argon2Service } from 'src/argon2/argon2.service';
 import { StationEntity } from 'src/station/entity/station.entity';
 import { ChargingSessionEntity } from 'src/station/entity/charging_session.entity';
 import { SessionStatus } from 'src/enums/sessionStatus.enum';
+import { parse } from 'date-fns';
 
 @Injectable()
 export class StaffService {
@@ -88,18 +89,21 @@ export class StaffService {
   // check duplicated reservation by staff
   async checkDupReservation(
     chargePointId: string,
-    start_time: Date,
+    start_time: string,
   ): Promise<boolean> {
     const reservation = await this.reservationRepo.find({
       where: {
-        charge_point_id: chargePointId,
-        reservation_day: start_time.toISOString().split('T')[0], // format: YYYY-MM-DD
+        charge_point: { id: chargePointId },
+        reservation_day: new Date().toISOString().split('T')[0], // format: YYYY-MM-DD
         status: ReservationStatus.PENDING,
       },
     });
-
+    const baseDate = new Date();
+    const startTime = parse(start_time, 'HH:mm', baseDate);
     for (const res of reservation) {
-      if (res.start_time <= start_time && res.end_time >= start_time) {
+      const resStartTime = parse(res.start_time, 'HH:mm', baseDate);
+      const resEndTime = parse(res.end_time, 'HH:mm', baseDate);
+      if (resStartTime <= startTime && resEndTime >= startTime) {
         // check start time - if start_time is in range of start_time and end_time in another reservation return false
         return false;
       }
@@ -112,7 +116,7 @@ export class StaffService {
   async startChargePoint(
     chargePointId: string,
     day: string,
-    start_time: Date,
+    start_time: string,
   ): Promise<ChargingSessionEntity> {
     const chargePoint = await this.chargePointRepo.findOne({
       where: { id: chargePointId },
@@ -132,23 +136,20 @@ export class StaffService {
     const chargingSession = this.chargingSessionRepo.create({
       day: day,
       start_time: start_time,
-      charge_point_id: chargePointId,
       charge_point: chargePoint,
     });
-    await Promise.all([
-      this.chargingSessionRepo.save(chargingSession),
-      this.redisService.set(
-        `StartChargingSession:${chargingSession.id}`,
-        start_time.toISOString(),
-      ),
-    ]);
+    await this.chargingSessionRepo.save(chargingSession);
+    await this.redisService.set(
+      `StartChargingSession:${chargingSession.id}`,
+      start_time,
+    );
     return chargingSession;
   }
 
   // end charge point with staff role
   async endChargePoint(
     chargingSessionId: string,
-    end_time: Date,
+    end_time: string,
   ): Promise<{
     chargingPrice: number;
     parkingFee: number;

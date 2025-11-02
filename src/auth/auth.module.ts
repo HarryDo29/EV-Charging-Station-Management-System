@@ -9,6 +9,7 @@ import { RefreshTokenModule } from 'src/refreshToken/refreshToken.module';
 import { MailModule } from 'src/mail/mail.module';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { RoleGaurd } from './gaurd/role.gaurd';
+import { RefreshTokenStrategy } from 'src/auth/strategy/jwt-refresh.strategy';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { RoleGaurd } from './gaurd/role.gaurd';
     MailModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, RoleGaurd],
+  providers: [AuthService, JwtStrategy, RoleGaurd, RefreshTokenStrategy],
   exports: [AuthService, JwtStrategy, RoleGaurd],
 })
 export class AuthModule {}

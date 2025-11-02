@@ -15,6 +15,7 @@ import { StaffEntity } from 'src/staff/entity/staff.entity';
 import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 import { ReservationEntity } from 'src/station/entity/reservation.entity';
 import { RefreshTokenEntity } from 'src/refreshToken/entity/refreshToken.entity';
+import { OrderEntity } from 'src/order/entity/order.entity';
 
 @Entity('accounts')
 export class AccountEntity implements IAccount {
@@ -77,4 +78,7 @@ export class AccountEntity implements IAccount {
 
   @OneToMany(() => ReservationEntity, (reservation) => reservation.account)
   reservations: ReservationEntity[];
+
+  @OneToMany(() => OrderEntity, (order) => order.account)
+  orders: OrderEntity[];
 }

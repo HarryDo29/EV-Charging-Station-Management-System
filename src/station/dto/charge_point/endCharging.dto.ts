@@ -1,11 +1,11 @@
-import { IsDate, IsNotEmpty, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class EndChargingDto {
   @IsUUID()
   @IsNotEmpty()
   charge_point_id: string;
 
-  @IsDate()
+  @IsString()
   @IsNotEmpty()
-  end_time: Date;
+  end_time: string;
 }

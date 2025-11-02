@@ -67,10 +67,9 @@ export class VehicleService {
    */
   async createVehicle(
     createVehicleDto: CreateVehicleDto,
+    accountId: string,
   ): Promise<VehicleEntity> {
-    const account = await this.accountService.findAccountById(
-      createVehicleDto.account_id,
-    );
+    const account = await this.accountService.findAccountById(accountId);
     if (!account) {
       throw new NotFoundException('Account not found');
     }

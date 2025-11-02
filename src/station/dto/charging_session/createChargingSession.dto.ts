@@ -1,4 +1,4 @@
-import { IsDate, IsDateString, IsNotEmpty, IsUUID } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateChargingSessionDto {
   @IsUUID()
@@ -9,9 +9,9 @@ export class CreateChargingSessionDto {
   @IsNotEmpty()
   day: string; // format: YYYY-MM-DD
 
-  @IsDate()
+  @IsString()
   @IsNotEmpty()
-  start_time: Date;
+  start_time: string;
 
   //   @IsNumber()
   //   @IsNotEmpty()

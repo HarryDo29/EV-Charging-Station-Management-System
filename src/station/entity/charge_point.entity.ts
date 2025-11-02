@@ -13,7 +13,6 @@ import { PrimaryGeneratedColumn } from 'typeorm';
 import { StationEntity } from './station.entity';
 import { IncidentReportEntity } from 'src/staff/entity/incident_report.entity';
 import { ReservationEntity } from './reservation.entity';
-import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 import { ChargingSessionEntity } from './charging_session.entity';
 
 @Entity('charge_points')
@@ -27,13 +26,13 @@ export class ChargePointEntity {
   @Column({ type: 'enum', enum: ConnectorType })
   connector_type: ConnectorType;
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   maxPowerKw: number; // unit: kW
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   pricePerKwh: number; // unit: VND/kWh
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   parkingFeePerHour: number; // unit: VND/hour
 
   @Column({ default: false })
@@ -73,9 +72,4 @@ export class ChargePointEntity {
     (charging_session) => charging_session.charge_point,
   )
   charging_sessions: ChargingSessionEntity[];
-  @Column()
-  charging_session_id: string;
-
-  @OneToMany(() => TransactionEntity, (transaction) => transaction.charge_point)
-  transactions: TransactionEntity[];
 }

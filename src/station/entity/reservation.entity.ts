@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   OneToOne,
@@ -13,6 +14,7 @@ import { ChargePointEntity } from './charge_point.entity';
 import { AccountEntity } from 'src/account/entity/account.entity';
 import { ChargingSessionEntity } from './charging_session.entity';
 import { VehicleEntity } from 'src/vehicle/entity/vehicle.entity';
+import { OrderItemEntity } from 'src/order/entity/order_item.entity';
 
 @Entity('reservations')
 export class ReservationEntity {
@@ -23,15 +25,15 @@ export class ReservationEntity {
   reservation_day: string; // format: YYYY-MM-DD
 
   @Column()
-  start_time: Date;
+  start_time: string;
 
-  @Column({ nullable: true })
-  end_time: Date;
+  @Column()
+  end_time: string;
 
   @Column({
     type: 'enum',
     enum: ReservationStatus,
-    default: ReservationStatus.RESERVED,
+    default: ReservationStatus.PENDING,
   })
   status: ReservationStatus;
 
@@ -47,21 +49,15 @@ export class ReservationEntity {
     (charge_point) => charge_point.reservations,
   )
   charge_point: ChargePointEntity;
-  @Column()
-  charge_point_id: string;
 
   // relationship with vehicle
   @ManyToOne(() => VehicleEntity, (vehicle) => vehicle.reservations)
   @JoinColumn({ name: 'vehicle_id' })
   vehicle: VehicleEntity;
-  @Column()
-  vehicle_id: string;
 
   // relationship with account
   @ManyToOne(() => AccountEntity, (account) => account.reservations)
   account: AccountEntity;
-  @Column({ nullable: true })
-  account_id: string;
 
   // relationship with charging session
   @OneToOne(
@@ -69,6 +65,8 @@ export class ReservationEntity {
     (charging_session) => charging_session.reservation,
   )
   charging_session: ChargingSessionEntity;
-  @Column()
-  charging_session_id: string;
+
+  // relationship with order items
+  @OneToMany(() => OrderItemEntity, (item) => item.reservation)
+  items: OrderItemEntity[];
 }

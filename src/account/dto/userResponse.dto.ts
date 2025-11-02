@@ -25,4 +25,7 @@ export class UserResponseDto {
 
   @Expose()
   is_oauth2: boolean;
+
+  @Expose()
+  avatar_url?: string;
 }

@@ -15,6 +15,7 @@ import { ChargingSessionEntity } from './entity/charging_session.entity';
 import { CreateChargingSessionDto } from './dto/charging_session/createChargingSession.dto';
 import { EndChargingSessionDto } from './dto/charging_session/endChargingSession.dto';
 import { SessionStatus } from 'src/enums/sessionStatus.enum';
+import { parse } from 'date-fns';
 
 @Injectable()
 export class ChargePointService {
@@ -32,25 +33,52 @@ export class ChargePointService {
     private readonly transactionService: TransactionService,
   ) {}
 
-  // create charge-point with identifier and station
+  // create charge-points from array of charge-points
+  async createChargePoints(
+    chargePoints: CreateChargePointDto[],
+  ): Promise<ChargePointEntity[]> {
+    const nChargePoints: ChargePointEntity[] = [];
+    for (const chargePoint of chargePoints) {
+      console.log('chargePointDTO', chargePoint);
+      const nChargePoint = await this.createChargePoint(chargePoint);
+      nChargePoints.push(nChargePoint);
+    }
+    return nChargePoints;
+  }
+
+  // create charge-point with identifer and station
   async createChargePoint(
     chargePoint: CreateChargePointDto,
   ): Promise<ChargePointEntity> {
     // find Station by station id
+    console.log('chargePoint.identifer', chargePoint.identifer);
     const station = await this.stationRepo.findOne({
-      where: { id: chargePoint.station_id },
+      where: { identifier: chargePoint.identifer },
       relations: ['charge_points'],
     });
+    console.log('station', station);
     if (!station) {
       throw new NotFoundException('Station not found');
     }
     // create identifier of charge point
     const identifier = `${station.identifier}-${String(station.charge_points.length + 1).padStart(2, '0')}`;
+    // check connector type is exists in station
+    if (!station.connectorTypes.includes(chargePoint.connector_type)) {
+      station.connectorTypes.push(chargePoint.connector_type);
+      await this.stationRepo.save(station);
+    }
     // create charge point
     const nChargePoint = this.chargePointRepo.create({
       ...chargePoint,
       identifier: identifier,
       station: station,
+    });
+    await this.stationRepo.update(station.id, {
+      totalChargePoints: station.totalChargePoints + 1,
+      availableChargePoints:
+        chargePoint.status === StationStatus.AVAILABLE
+          ? station.availableChargePoints + 1
+          : station.availableChargePoints,
     });
     return await this.chargePointRepo.save(nChargePoint);
   }
@@ -158,9 +186,7 @@ export class ChargePointService {
     // create charging session
     const nChargingSession = this.chargingSessionRepo.create({
       charge_point: reservation.charge_point,
-      charge_point_id: reservation.charge_point_id,
       reservation: reservation,
-      reservation_id: reservation_id,
       start_time: start_time,
       day: day,
     });
@@ -173,10 +199,7 @@ export class ChargePointService {
         status: ReservationStatus.RESERVED,
       }),
       // set reservation start time to redis
-      this.redisService.set(
-        `StartCharging:${reservation_id}`,
-        start_time.toISOString(),
-      ),
+      this.redisService.set(`StartCharging:${reservation_id}`, start_time),
     ]);
     return nChargingSession;
   }
@@ -202,7 +225,7 @@ export class ChargePointService {
     }
     // get reservation
     const reservation = await this.reservationRepo.findOne({
-      where: { id: chargingSession.reservation_id },
+      where: { id: chargingSession.reservation.id },
     });
     if (!reservation) {
       throw new NotFoundException('Reservation not found');
@@ -216,7 +239,8 @@ export class ChargePointService {
     }
     // calculate charging time
     const chargingTime =
-      (end_time.getTime() - new Date(startChargingTime).getTime()) /
+      (parse(end_time, 'HH:mm', new Date()).getTime() -
+        parse(startChargingTime, 'HH:mm', new Date()).getTime()) /
       (1000 * 60 * 60);
     // total price
     const { totalKwh, chargingPrice, parkingFee, totalPrice } =
@@ -241,7 +265,7 @@ export class ChargePointService {
       chargingPrice,
       parkingFee,
       totalPrice,
-      accountId: reservation.account_id,
+      accountId: reservation.account.id,
     };
   }
 }

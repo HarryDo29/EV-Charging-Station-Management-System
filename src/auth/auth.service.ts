@@ -66,21 +66,24 @@ export class AuthService {
         role: account.role,
       }),
     ]);
-
+    console.log('accessToken', accessToken);
+    console.log('refreshToken', refreshToken);
     // set access token to redis
-    await this.redisService.set(`id:${account.id}`, accessToken, 60 * 60);
-    // set refresh token to database
-    await this.refreshTokenService.updateRefreshToken(account.id, refreshToken);
+    await Promise.all([
+      this.redisService.set(`id:${account.id}`, accessToken, 60 * 60),
+      this.refreshTokenService.createRefreshToken(account.id, refreshToken),
+    ]);
     return {
       userResponse: {
         id: account.id,
         full_name: account.full_name,
         email: account.email,
         phone_number: account.phone_number,
+        role: account.role,
         is_verified: account.is_verified,
         is_active: account.is_active,
         is_oauth2: account.is_oauth2,
-        role: account.role,
+        avatar_url: account.avatar_url || '',
       },
       accessToken: accessToken,
       refreshToken: refreshToken,
@@ -118,12 +121,10 @@ export class AuthService {
       }),
     ]);
     // set access token to redis
-    await this.redisService.set(`id:${newAccount.id}`, accessToken, 60 * 60);
-    // set refresh token to database
-    await this.refreshTokenService.createRefreshToken(
-      newAccount.id,
-      refreshToken,
-    );
+    await Promise.all([
+      this.redisService.set(`id:${newAccount.id}`, accessToken, 60 * 60),
+      this.refreshTokenService.createRefreshToken(newAccount.id, refreshToken),
+    ]);
     return {
       userResponse: {
         id: newAccount.id,
@@ -134,6 +135,7 @@ export class AuthService {
         is_verified: newAccount.is_verified,
         is_active: newAccount.is_active,
         is_oauth2: newAccount.is_oauth2,
+        avatar_url: newAccount.avatar_url || '',
       },
       accessToken: accessToken,
       refreshToken: refreshToken,
@@ -173,9 +175,10 @@ export class AuthService {
       }),
     ]);
     // set access token to redis
-    await this.redisService.set(`id:${account.id}`, accessToken, 60 * 60);
-    // set refresh token to database
-    await this.refreshTokenService.updateRefreshToken(account.id, refreshToken);
+    await Promise.all([
+      this.redisService.set(`id:${account.id}`, accessToken, 60 * 60),
+      this.refreshTokenService.updateRefreshToken(account.id, refreshToken),
+    ]);
     return {
       userResponse: {
         id: account.id,
@@ -186,6 +189,7 @@ export class AuthService {
         is_active: account.is_active,
         is_oauth2: account.is_oauth2,
         role: account.role,
+        avatar_url: account.avatar_url || '',
       },
       accessToken: accessToken,
       refreshToken: refreshToken,
@@ -286,9 +290,10 @@ export class AuthService {
   }
 
   async logout(account: AccountEntity): Promise<void> {
-    // remove access token from redis
-    await this.redisService.del(`id:${account.id}`);
-    // remove refresh token from database
-    await this.refreshTokenService.updateRefreshToken(account.id, '');
+    // remove access token and refresh token from redis and database
+    await Promise.all([
+      this.redisService.del(`id:${account.id}`),
+      this.refreshTokenService.updateRefreshToken(account.id, ''),
+    ]);
   }
 }

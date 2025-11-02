@@ -11,6 +11,7 @@ import { RegisterDto } from './dto/registerAccount.dto';
 import { LoginDto } from './dto/loginAccount.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AccountService } from 'src/account/account.service';
+import { RefreshTokenService } from 'src/refreshToken/refreshToken.service';
 import { AuthenticatedUserDto } from './dto/authenticated-user.dto';
 import type {
   Request as RequestExpress,
@@ -18,12 +19,14 @@ import type {
 } from 'express';
 import { ChangePasswordDto } from './dto/changePassword.dto';
 import { UserResponseDto } from 'src/account/dto/userResponse.dto';
+import { RefreshTokenGuard } from 'src/auth/gaurd/rfToken.gaurd';
 
 @Controller('/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly accountService: AccountService,
+    private readonly refreshTokenService: RefreshTokenService,
   ) {}
 
   @Post('/register')
@@ -92,6 +95,29 @@ export class AuthController {
   ) {
     const acc = req.user as AuthenticatedUserDto;
     return await this.authService.changePassword(acc.id, changePasswordDto);
+  }
+
+  @UseGuards(RefreshTokenGuard)
+  @Post('/refresh-access-token')
+  async refreshAccessToken(
+    @Request() req: RequestExpress,
+    @Response({ passthrough: true }) response: ResponseExpress,
+  ) {
+    const acc = req.user as AuthenticatedUserDto;
+    console.log('acc from refreshAccessToken', acc);
+    const { accessToken, refreshToken } =
+      await this.refreshTokenService.refreshAccessToken(acc);
+    response.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      expires: new Date(Date.now() + 15 * 60 * 1000), // 15 phút
+    });
+    response.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 ngày
+    });
+    return {
+      message: 'Refresh access token successfully',
+    };
   }
 
   @UseGuards(AuthGuard('jwt'))

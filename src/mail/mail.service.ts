@@ -5,6 +5,7 @@ import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StationEntity } from 'src/station/entity/station.entity';
+import { addMinutes, parse } from 'date-fns';
 
 @Injectable()
 export class MailService {
@@ -31,14 +32,14 @@ export class MailService {
 
   // send booking confirmation email
   async sendBookingConfirmation(to: string, reservation: ReservationEntity) {
-    const { charge_point_id, start_time, end_time } = reservation;
+    const { charge_point, start_time, end_time } = reservation;
     await this.mailerService.sendMail({
       to,
       subject: 'Booking Reservation Confirmation - EV Charger',
       template: './reservation-template', // name file template
       context: {
         userName: reservation.account.full_name,
-        chargePointId: charge_point_id,
+        chargePointId: charge_point.identifier,
         startTime: start_time.toLocaleString(),
         endTime: end_time.toLocaleString(),
         year: new Date().getFullYear(),
@@ -48,8 +49,8 @@ export class MailService {
 
   // send payment success email
   async sendPaymentSuccess(to: string, transaction: TransactionEntity) {
-    const { identifier } = transaction.charge_point;
-    const { start_time, end_time } = transaction.charging_session;
+    const { identifier } = transaction.order.items[0].reservation.charge_point;
+    const { start_time, end_time } = transaction.order.items[0].reservation;
     await this.mailerService.sendMail({
       to,
       subject: 'Payment Success - EV Charger',
@@ -68,8 +69,8 @@ export class MailService {
 
   // send payment failed email
   async sendPaymentFailed(to: string, transaction: TransactionEntity) {
-    const { identifier } = transaction.charge_point;
-    const { start_time, end_time } = transaction.charging_session;
+    const { identifier } = transaction.order.items[0].reservation.charge_point;
+    const { start_time, end_time } = transaction.order.items[0].reservation;
     await this.mailerService.sendMail({
       to,
       subject: 'Payment Failed - EV Charger',
@@ -109,7 +110,7 @@ export class MailService {
         endTime: end_time.toLocaleString(),
         scheduledTime: created_at.toLocaleString(),
         stationName: stationName.identifier,
-        lateTime: (start_time.getTime() + 30 * 60 * 1000).toLocaleString(),
+        lateTime: start_time,
         year: new Date().getFullYear(),
       },
     });
@@ -137,9 +138,10 @@ export class MailService {
         endTime: end_time.toLocaleString(),
         stationName: stationName.identifier,
         year: new Date().getFullYear(),
-        cancellationTime: (
-          start_time.getTime() +
-          30 * 60 * 1000
+        cancellationTime: parse(
+          start_time,
+          'HH:mm',
+          addMinutes(new Date(), 30),
         ).toLocaleString(),
       },
     });

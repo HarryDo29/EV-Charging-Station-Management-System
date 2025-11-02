@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 import { SessionStatus } from 'src/enums/sessionStatus.enum';
 import { ReservationEntity } from './reservation.entity';
-import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 import { ChargePointEntity } from './charge_point.entity';
 
 @Entity('charging_session')
@@ -21,10 +20,10 @@ export class ChargingSessionEntity {
   day: string; // format: YYYY-MM-DD
 
   @Column()
-  start_time: Date;
+  start_time: string;
 
   @Column()
-  end_time: Date;
+  end_time: string;
 
   @Column()
   total_time: number;
@@ -53,8 +52,6 @@ export class ChargingSessionEntity {
     (charge_point) => charge_point.charging_sessions,
   )
   charge_point: ChargePointEntity;
-  @Column()
-  charge_point_id: string;
 
   // relationship with reservation
   @OneToOne(
@@ -62,15 +59,4 @@ export class ChargingSessionEntity {
     (reservation) => reservation.charging_session,
   )
   reservation: ReservationEntity;
-  @Column({ nullable: true })
-  reservation_id: string;
-
-  // relationship with transaction
-  @OneToOne(
-    () => TransactionEntity,
-    (transaction) => transaction.charging_session,
-  )
-  transaction: TransactionEntity;
-  @Column({ nullable: true })
-  transaction_id: string;
 }

@@ -10,4 +10,7 @@ export class AuthenticatedUserDto {
 
   @Expose()
   role: Role;
+
+  @Expose()
+  exp?: number;
 }

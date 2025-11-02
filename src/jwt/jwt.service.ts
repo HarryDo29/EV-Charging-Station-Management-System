@@ -32,8 +32,11 @@ export class JwtCustomService {
   }
 
   // Hàm kí refresh token
-  signRefreshToken(payload: object): string {
-    return this.jwtService.sign(payload, this.rfTokenOptions);
+  signRefreshToken(payload: object, options?: JwtSignOptions): string {
+    return this.jwtService.sign(payload, {
+      ...this.rfTokenOptions,
+      ...options,
+    });
   }
 
   // Hàm xác thực refresh token

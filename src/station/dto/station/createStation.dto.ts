@@ -4,7 +4,8 @@ import {
   IsNumber,
   IsArray,
   IsEnum,
-  IsDecimal,
+  IsLatitude,
+  IsLongitude,
 } from 'class-validator';
 import { ConnectorType } from 'src/enums/connector.enum';
 
@@ -21,11 +22,11 @@ export class CreateStationDto {
   @IsNotEmpty()
   address: string;
 
-  @IsDecimal()
+  @IsLatitude()
   @IsNotEmpty()
   latitude: number;
 
-  @IsDecimal()
+  @IsLongitude()
   @IsNotEmpty()
   longitude: number;
 
