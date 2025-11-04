@@ -1,14 +1,26 @@
-import { Controller, Post, Body, HttpStatus, Res } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpStatus,
+  Res,
+  NotFoundException,
+} from '@nestjs/common';
 import { PaymentService } from './payment.service';
-import { EventsGateway } from '../event/event.gateway'; // Import Gateway for sending signal to Frontend
+import { PaymentGateway } from './payment.gateway'; // Import Gateway for sending signal to Frontend
 import type { Webhook } from '@payos/node';
 import { type Response as ExpressResponse } from 'express';
+import { Repository } from 'typeorm';
+import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Controller('payment')
 export class PaymentController {
   constructor(
     private readonly paymentService: PaymentService,
-    private readonly eventsGateway: EventsGateway, // Inject Gateway for sending signal to Frontend
+    private readonly paymentGateway: PaymentGateway, // Inject Gateway for sending signal to Frontend
+    @InjectRepository(TransactionEntity)
+    private readonly transactionRepository: Repository<TransactionEntity>,
   ) {}
 
   // Endpoint for Frontend to call to create QR code
@@ -27,19 +39,20 @@ export class PaymentController {
         statusCode: HttpStatus.OK,
         message: 'Webhook received successfully',
       });
+      const transaction = await this.transactionRepository.findOne({
+        where: {
+          order_code: verifiedData.orderCode,
+        },
+        relations: ['order'],
+      });
+      if (!transaction) {
+        throw new NotFoundException('Transaction not found');
+      }
       // After processing, use Gateway to send signal to Frontend
       if (verifiedData.code === '00') {
-        this.eventsGateway.sendPaymentStatus(
-          verifiedData.orderCode,
-          'PAID',
-          'Payment successful!',
-        );
+        this.paymentGateway.sendPaymentStatus(transaction.order.id, 'SUCCESS');
       } else {
-        this.eventsGateway.sendPaymentStatus(
-          verifiedData.orderCode,
-          'FAILED',
-          'Payment failed.',
-        );
+        this.paymentGateway.sendPaymentStatus(transaction.order.id, 'FAILED');
       }
     } catch (error) {
       console.error('Failed to process webhook:', error);

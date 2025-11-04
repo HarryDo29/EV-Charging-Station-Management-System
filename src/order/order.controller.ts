@@ -11,6 +11,7 @@ export class OrderController {
   async createOrderForReservation(
     @Body() createOrderForReservation: { reservationId: string },
   ) {
+    console.log('createOrderForReservation', createOrderForReservation);
     const { reservationId } = createOrderForReservation;
     return await this.orderService.createOrderForReservation(reservationId);
   }

@@ -3,25 +3,32 @@ import { ConfigService } from '@nestjs/config';
 import { PayOS } from '@payos/node';
 import { PaymentService } from './payment.service';
 import { PaymentController } from './payment.controller';
-import { EventsGateway } from 'src/event/event.gateway';
 import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailService } from 'src/mail/mail.service';
 import { TransactionService } from 'src/transaction/transaction.service';
-import { StationEntity } from 'src/station/entity/station.entity';
 import { AccountService } from 'src/account/account.service';
 import { AccountEntity } from 'src/account/entity/account.entity';
 import { Argon2Service } from 'src/argon2/argon2.service';
+import { PaymentGateway } from './payment.gateway';
+import { OrderEntity } from 'src/order/entity/order.entity';
+import { StationEntity } from 'src/station/entity/station.entity';
 
 @Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([TransactionEntity, StationEntity, AccountEntity]),
+    TypeOrmModule.forFeature([
+      TransactionEntity,
+      StationEntity,
+      AccountEntity,
+      OrderEntity,
+    ]),
   ],
   controllers: [PaymentController],
   providers: [
     MailService,
     PaymentService,
+    PaymentGateway,
     {
       provide: 'PAYOS_INSTANCE',
       useFactory: (configService: ConfigService) => {
@@ -45,7 +52,6 @@ import { Argon2Service } from 'src/argon2/argon2.service';
       },
       inject: [ConfigService],
     },
-    EventsGateway,
     TransactionService,
     AccountService,
     Argon2Service,

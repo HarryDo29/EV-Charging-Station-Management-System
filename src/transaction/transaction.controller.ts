@@ -21,7 +21,12 @@ export class TransactionController {
     transaction.amount = body.amount;
     transaction.type = body.type;
     transaction.order_id = body.order_id;
-    return await this.transactionService.createTransaction(transaction, acc.id);
+    const createdTransaction = await this.transactionService.createTransaction(
+      transaction,
+      acc.id,
+    );
+    console.log('createdTransaction', createdTransaction);
+    return createdTransaction;
   }
 
   @Get('/get-all-transactions/:id')

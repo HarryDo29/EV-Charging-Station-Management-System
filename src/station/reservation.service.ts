@@ -44,17 +44,20 @@ export class ReservationService {
         status: ReservationStatus.PENDING,
       },
     });
+    if (reservation.length === 0) {
+      return true;
+    }
     // check start time: if in range of start_time and end_time in another reservation
     // check end time: if in range of start_time and end_time in another reservation
     for (const res of reservation) {
       const resStartTime = parse(res.start_time, 'HH:mm', baseDate);
       const resEndTime = parse(res.end_time, 'HH:mm', baseDate);
       // check start time - if start_time is in range of start_time and end_time in another reservation return false
-      if (resStartTime <= startTime || resEndTime >= startTime) {
-        return true;
-      }
-      // check end time - if end_time is in range of start_time and end_time in another reservation return false
-      if (resStartTime <= endTime || resEndTime >= endTime) {
+      // if start_time is in range of start_time and end_time in another reservation return true
+      //        07: 00 - 08: 00
+      // nEndTime < 07: 00 or 08: 00 < nStartTime
+
+      if (resEndTime < startTime || endTime < resStartTime) {
         return true;
       }
     }
@@ -92,7 +95,7 @@ export class ReservationService {
       start_time,
       end_time,
     );
-    if (isDuplicated === true) {
+    if (isDuplicated !== true) {
       throw new BadRequestException('Reservation is duplicated');
     }
     // create reservation

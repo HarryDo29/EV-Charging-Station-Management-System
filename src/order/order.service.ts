@@ -24,7 +24,7 @@ export class OrderService {
     // get reservation
     const reservation = await this.reservationRepository.findOne({
       where: { id: reservationId },
-      relations: ['charge_point', 'account'],
+      relations: ['account', 'charge_point', 'vehicle'],
     });
     if (!reservation) {
       throw new NotFoundException('Reservation not found');
@@ -34,13 +34,18 @@ export class OrderService {
       order_type: OrderType.RESERVATION,
       account: { id: reservation.account.id },
     });
+    console.log('order', order);
     const savedOrder = await this.orderRepository.save(order);
+    console.log('savedOrder', savedOrder);
     // calculate total price
     const baseDate = new Date();
     const startTime = parse(reservation.start_time, 'HH:mm', baseDate);
     const endTime = parse(reservation.end_time, 'HH:mm', baseDate);
     const totalTime = differenceInHours(endTime, startTime);
-    const totalPrice = reservation.charge_point.pricePerKwh * totalTime;
+    const totalPrice =
+      reservation.charge_point.pricePerKwh *
+      reservation.vehicle.charging_power_kw *
+      totalTime;
 
     console.log('order', savedOrder);
 
@@ -53,7 +58,7 @@ export class OrderService {
       order: { id: savedOrder.id },
     });
     // update order amount
-    savedOrder.amount = order_item.total_price;
+    savedOrder.total_amount = savedOrder.total_amount + order_item.total_price;
     await this.orderRepository.save(savedOrder);
     // save order item
     await this.orderItemRepository.save(order_item);

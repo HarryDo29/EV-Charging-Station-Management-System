@@ -18,7 +18,7 @@ export class OrderEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column()
   order_type: OrderType;
 
   @Column({
@@ -28,8 +28,8 @@ export class OrderEntity {
   })
   order_status: OrderStatus;
 
-  @Column({ nullable: true })
-  amount: number;
+  @Column({ default: 0 })
+  total_amount: number;
 
   @CreateDateColumn()
   created_at: Date;
