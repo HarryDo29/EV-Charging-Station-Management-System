@@ -11,19 +11,30 @@ import { Argon2Module } from 'src/argon2/argon2.module';
 import { JwtModule } from 'src/jwt/jwt.module';
 import { RedisModule } from 'src/redis/redis.module';
 import { RefreshTokenModule } from 'src/refreshToken/refreshToken.module';
+import { MailService } from 'src/mail/mail.service';
+import { RefreshTokenEntity } from 'src/refreshToken/entity/refreshToken.entity';
+import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
+import { StationEntity } from 'src/station/entity/station.entity';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
     // PassportModule default strategy is oauth2
     PassportModule.register({ defaultStrategy: 'oauth2' }),
-    TypeOrmModule.forFeature([AccountEntity]),
+    TypeOrmModule.forFeature([
+      AccountEntity,
+      RefreshTokenEntity,
+      TransactionEntity,
+      StationEntity,
+    ]),
     AccountModule,
     Argon2Module,
     JwtModule,
     RedisModule,
     RefreshTokenModule,
+    MailModule,
   ],
-  providers: [OAuth2Strategy, AuthService, AccountService],
+  providers: [OAuth2Strategy, AuthService, AccountService, MailService],
   controllers: [GoogleController],
   exports: [],
 })

@@ -5,9 +5,9 @@ import {
   CreateDateColumn,
   Entity,
   OneToMany,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { PrimaryGeneratedColumn } from 'typeorm';
 import { ChargePointEntity } from './charge_point.entity';
 import { StaffEntity } from 'src/staff/entity/staff.entity';
 

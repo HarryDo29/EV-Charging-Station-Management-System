@@ -13,6 +13,8 @@ import { Argon2Service } from 'src/argon2/argon2.service';
 import { PaymentGateway } from './payment.gateway';
 import { OrderEntity } from 'src/order/entity/order.entity';
 import { StationEntity } from 'src/station/entity/station.entity';
+import { ReservationEntity } from 'src/station/entity/reservation.entity';
+import { ChargePointEntity } from 'src/station/entity/charge_point.entity';
 
 @Global()
 @Module({
@@ -22,6 +24,8 @@ import { StationEntity } from 'src/station/entity/station.entity';
       StationEntity,
       AccountEntity,
       OrderEntity,
+      ReservationEntity,
+      ChargePointEntity,
     ]),
   ],
   controllers: [PaymentController],

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { AccountEntity } from './entity/account.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, UpdateResult } from 'typeorm';
@@ -53,18 +57,26 @@ export class AccountService {
   }
 
   async updateAccount(
-    id: string,
-    account: UpdateAccountDto,
-  ): Promise<UpdateResult> {
+    account_id: string,
+    updateAccountDto: UpdateAccountDto,
+  ): Promise<AccountEntity | null> {
     // find account
     const acc = await this.accountRepository.findOne({
-      where: { id },
+      where: { id: account_id },
     });
     if (!acc) {
       throw new NotFoundException('Account not found');
     }
     // update account
-    return await this.accountRepository.update(id, { ...account });
+    const result = await this.accountRepository.update(account_id, {
+      ...updateAccountDto,
+    });
+    if (result.affected === 0) {
+      throw new BadRequestException('Failed to update account');
+    }
+    return await this.accountRepository.findOne({
+      where: { id: account_id },
+    });
   }
 
   async deleteAccount(id: string): Promise<UpdateResult> {
@@ -92,6 +104,21 @@ export class AccountService {
         is_active: true,
         is_oauth2: true,
         avatar_url: true,
+      },
+      relations: {
+        vehicles: true,
+        user_subscriptions: true,
+        // staff: true,
+        transactions: true,
+        reservations: {
+          charge_point: {
+            station: true,
+          },
+        },
+        orders: {
+          items: true,
+          transaction: true,
+        },
       },
     });
     if (!account) {

@@ -23,6 +23,8 @@ import { QueueModule } from './queue/queue.module';
 import { R2StorageModule } from './r2Storage/r2Storage.module';
 import { StationModule } from './station/station.module';
 import { OrderModule } from './order/order.module';
+import { CheckOutModule } from './checkOut/checkOut.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -63,6 +65,8 @@ import { OrderModule } from './order/order.module';
     CronModule,
     R2StorageModule,
     OrderModule,
+    CheckOutModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [

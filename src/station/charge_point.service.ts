@@ -90,7 +90,7 @@ export class ChargePointService {
   ): Promise<ChargePointEntity | null> {
     // find Station by station id
     return await this.chargePointRepo.findOne({
-      where: { identifier: identifier, station_id: stationId },
+      where: { identifier: identifier, station: { id: stationId } },
     });
   }
 
@@ -99,7 +99,7 @@ export class ChargePointService {
     stationId: string,
   ): Promise<ChargePointEntity[]> {
     return await this.chargePointRepo.find({
-      where: { station_id: stationId },
+      where: { station: { id: stationId } },
     });
   }
 
@@ -110,7 +110,7 @@ export class ChargePointService {
     chargePoint: UpdateChargePointDto,
   ): Promise<UpdateResult> {
     const updatedChargePoint = await this.chargePointRepo.update(
-      { identifier: identifier, station_id: stationId },
+      { identifier: identifier, station: { id: stationId } },
       chargePoint,
     );
     if (updatedChargePoint.affected === 0) {
@@ -126,7 +126,7 @@ export class ChargePointService {
     status: StationStatus,
   ): Promise<UpdateResult> {
     const updatedChargePoint = await this.chargePointRepo.update(
-      { identifier: identifier, station_id: stationId },
+      { identifier: identifier, station: { id: stationId } },
       { status },
     );
     if (updatedChargePoint.affected === 0) {

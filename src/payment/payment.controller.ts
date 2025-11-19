@@ -23,43 +23,49 @@ export class PaymentController {
     private readonly transactionRepository: Repository<TransactionEntity>,
   ) {}
 
-  // Endpoint for Frontend to call to create QR code
-  // @Post('create')
-  // async createPaymentLink(@Body() body: CreatePaymentDto) {
-  //   return this.paymentService.createPaymentLink(body);
-  // }
-
   // Endpoint for PayOS to call when there is an update in status
   @Post('webhook')
   async handleWebhook(@Body() body: Webhook, @Res() res: ExpressResponse) {
     try {
+      // 1. Verify webhook data
       const verifiedData = await this.paymentService.handleWebhook(body);
-      // Response immediately: 200 OK
+      console.log('verifiedData', verifiedData);
+      // 2. Find transaction with order relation
+      const transaction = await this.transactionRepository.findOne({
+        where: {
+          order_code: verifiedData?.orderCode,
+        },
+        relations: ['order'],
+      });
+
+      if (!transaction) {
+        throw new NotFoundException('Transaction not found');
+      }
+
+      if (!transaction.order) {
+        throw new NotFoundException('Order not found for this transaction');
+      }
+
+      // 3. Response immediately: 200 OK (BEFORE sending WebSocket)
       res.status(HttpStatus.OK).json({
         statusCode: HttpStatus.OK,
         message: 'Webhook received successfully',
       });
-      const transaction = await this.transactionRepository.findOne({
-        where: {
-          order_code: verifiedData.orderCode,
-        },
-        relations: ['order'],
-      });
-      if (!transaction) {
-        throw new NotFoundException('Transaction not found');
-      }
-      // After processing, use Gateway to send signal to Frontend
-      if (verifiedData.code === '00') {
-        this.paymentGateway.sendPaymentStatus(transaction.order.id, 'SUCCESS');
-      } else {
-        this.paymentGateway.sendPaymentStatus(transaction.order.id, 'FAILED');
-      }
+
+      // 4. After response, send WebSocket signal to Frontend
+      // Note: Client MUST have already joined the room via socket.emit('joinPaymentRoom')
+      const status = verifiedData?.code === '00' ? 'SUCCESS' : 'FAILED';
+      this.paymentGateway.sendPaymentStatus(transaction.order.id, status);
     } catch (error) {
       console.error('Failed to process webhook:', error);
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'Failed to process webhook',
-      });
+
+      // Only send error response if not already sent
+      if (!res.headersSent) {
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'Failed to process webhook',
+        });
+      }
     }
   }
 }

@@ -4,18 +4,29 @@ import {
   WebSocketGateway,
   WebSocketServer,
   MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  OnGatewayInit,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({
   cors: {
-    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    origin: ['http://localhost:5173'],
     credentials: true,
   },
+  transports: ['websocket'],
+  path: '/socket-io/payment',
 })
-export class PaymentGateway {
+export class PaymentGateway
+  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
+{
   @WebSocketServer()
   server: Server;
+
+  afterInit(server: Server) {
+    console.log('WebSocket server initialized', server);
+  }
 
   handleConnection(client: Socket) {
     console.log('Client connected', client.id);
@@ -29,20 +40,22 @@ export class PaymentGateway {
   async handleJoinPaymentRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody()
-    payload: { orderCode: number },
+    payload: { orderId: string },
   ) {
-    const room = await client.join(`payment_room:${payload.orderCode}`);
-    console.log('Client joined room', room);
+    const roomName = `payment_room:${payload.orderId}`;
+    await client.join(roomName);
+    console.log(`Client ${client.id} joined room ${roomName}`);
   }
 
   public sendPaymentStatus(orderId: string, status: 'SUCCESS' | 'FAILED') {
-    // Gửi event 'payment_status' tới TẤT CẢ client
-    // đang ở trong phòng có tên là `orderId`
-    this.server.to(orderId).emit('payment_status', {
+    const roomName = `payment_room:${orderId}`;
+
+    // Gửi event 'payment_status' tới TẤT CẢ client đang ở trong room
+    this.server.to(roomName).emit('payment_status', {
       orderId: orderId,
       status: status,
     });
 
-    console.log(`Đã gửi status ${status} tới phòng ${orderId}`);
+    console.log(`Đã gửi payment_status [${status}] tới phòng ${roomName}`);
   }
 }

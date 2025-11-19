@@ -1,14 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ReservationEntity } from 'src/station/entity/reservation.entity';
 import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StationEntity } from 'src/station/entity/station.entity';
-import { addMinutes, parse } from 'date-fns';
+import { join } from 'path';
+import * as fs from 'fs-extra';
+import handlebars from 'handlebars';
+import { Logger } from '@nestjs/common';
+import { Transporter } from 'nodemailer';
+import { parse, addMinutes } from 'date-fns';
 
 @Injectable()
-export class MailService {
+export class MailService implements OnModuleInit {
+  private readonly logger = new Logger(MailService.name);
+  private templatesDir = join(__dirname, 'template');
+
   constructor(
     private mailerService: MailerService,
     @InjectRepository(TransactionEntity)
@@ -17,73 +25,112 @@ export class MailService {
     private readonly stationRepository: Repository<StationEntity>,
   ) {}
 
+  async onModuleInit() {
+    // debug verify transporter (thử connect SMTP khi app khởi động)
+    try {
+      const transporter = (
+        this.mailerService as unknown as {
+          transporter: Transporter;
+        }
+      ).transporter;
+      if (transporter && typeof transporter.verify === 'function') {
+        await transporter.verify();
+        this.logger.log('SMTP verified successfully (Gmail).');
+      } else {
+        this.logger.warn('No transporter.verify() available.');
+      }
+    } catch (err) {
+      this.logger.error('SMTP verify failed', err);
+    }
+
+    // register partials if exist
+    const partialsDir = join(this.templatesDir, 'partials');
+    if (fs.pathExistsSync(partialsDir)) {
+      const files = fs.readdirSync(partialsDir);
+      for (const f of files) {
+        const name = f.replace(/\.(hbs|html)$/, '');
+        const content = fs.readFileSync(join(partialsDir, f), 'utf8');
+        handlebars.registerPartial(name, content);
+      }
+    }
+  }
+
+  private async compileTemplateFromHtml(templateName: string, context: any) {
+    // templateName WITHOUT extension, ví dụ 'payment-success' -> file payment-success.html
+    const templatePath = join(this.templatesDir, `${templateName}.html`);
+    const exists = await fs.pathExists(templatePath);
+    if (!exists) {
+      throw new Error(`Template file not found: ${templatePath}`);
+    }
+
+    const templateStr = await fs.readFile(templatePath, 'utf8');
+    const compiled = handlebars.compile(templateStr);
+    return compiled(context);
+  }
+
   // send otp verification email
   async sendOtpVerification(to: string, otpCode: string) {
-    await this.mailerService.sendMail({
-      to,
-      subject: 'OTP Verification - EV Charger',
-      template: './otp_verification_email',
-      context: {
+    const htmlContent = await this.compileTemplateFromHtml(
+      'otp_verification_email',
+      {
         otpCode,
         year: new Date().getFullYear(),
       },
-    });
-  }
-
-  // send booking confirmation email
-  async sendBookingConfirmation(to: string, reservation: ReservationEntity) {
-    const { charge_point, start_time, end_time } = reservation;
+    );
     await this.mailerService.sendMail({
       to,
-      subject: 'Booking Reservation Confirmation - EV Charger',
-      template: './reservation-template', // name file template
-      context: {
-        userName: reservation.account.full_name,
-        chargePointId: charge_point.identifier,
-        startTime: start_time.toLocaleString(),
-        endTime: end_time.toLocaleString(),
-        year: new Date().getFullYear(),
-      },
+      subject: 'OTP Verification - EV Charger',
+      html: htmlContent,
     });
   }
 
   // send payment success email
   async sendPaymentSuccess(to: string, transaction: TransactionEntity) {
-    const { identifier } = transaction.order.items[0].reservation.charge_point;
+    const { order_code, updated_at, amount } = transaction;
     const { start_time, end_time } = transaction.order.items[0].reservation;
-    await this.mailerService.sendMail({
-      to,
-      subject: 'Payment Success - EV Charger',
-      template: './payment_success_notification',
-      context: {
-        orderCode: transaction.order_code,
-        dateTime: transaction.updated_at.toLocaleString(),
-        amount: transaction.amount,
-        chargePointId: identifier,
+    const stationName =
+      transaction.order.items[0].reservation.charge_point.station.name;
+    const htmlContent = await this.compileTemplateFromHtml(
+      'payment_success_notification',
+      {
+        orderCode: order_code,
+        dateTime: updated_at.toLocaleString(),
+        amount: amount,
+        chargePointId: stationName,
         startTime: start_time.toLocaleString(),
         endTime: end_time.toLocaleString(),
         year: new Date().getFullYear(),
       },
+    );
+    await this.mailerService.sendMail({
+      to,
+      subject: 'Payment Success - EV Charger',
+      html: htmlContent,
     });
   }
 
   // send payment failed email
   async sendPaymentFailed(to: string, transaction: TransactionEntity) {
-    const { identifier } = transaction.order.items[0].reservation.charge_point;
+    const { order_code, updated_at, amount } = transaction;
     const { start_time, end_time } = transaction.order.items[0].reservation;
-    await this.mailerService.sendMail({
-      to,
-      subject: 'Payment Failed - EV Charger',
-      template: './payment_failure_notification',
-      context: {
-        orderCode: transaction.order_code,
-        dateTime: transaction.updated_at.toLocaleString(),
-        amount: transaction.amount,
-        chargePointId: identifier,
+    const stationName =
+      transaction.order.items[0].reservation.charge_point.station.name;
+    const htmlContent = await this.compileTemplateFromHtml(
+      'payment_failure_notification',
+      {
+        orderCode: order_code,
+        dateTime: updated_at.toLocaleString(),
+        amount: amount,
+        chargePointId: stationName,
         startTime: start_time.toLocaleString(),
         endTime: end_time.toLocaleString(),
         year: new Date().getFullYear(),
       },
+    );
+    await this.mailerService.sendMail({
+      to,
+      subject: 'Payment Failed - EV Charger',
+      html: htmlContent,
     });
   }
 
@@ -93,17 +140,15 @@ export class MailService {
       reservation;
     const stationName = await this.stationRepository.findOne({
       where: {
-        id: charge_point.station_id,
+        id: charge_point.station.id,
       },
     });
     if (!stationName) {
       throw new NotFoundException('Station not found');
     }
-    await this.mailerService.sendMail({
-      to,
-      subject: 'Reminder - EV Charger',
-      template: './late_reservation_notification',
-      context: {
+    const htmlContent = await this.compileTemplateFromHtml(
+      'late_reservation_notification',
+      {
         driverName: reservation.account.full_name,
         reservationDay: reservation_day,
         startTime: start_time.toLocaleString(),
@@ -113,6 +158,11 @@ export class MailService {
         lateTime: start_time,
         year: new Date().getFullYear(),
       },
+    );
+    await this.mailerService.sendMail({
+      to,
+      subject: 'Reminder - EV Charger',
+      html: htmlContent,
     });
   }
 
@@ -121,29 +171,32 @@ export class MailService {
     const { reservation_day, start_time, end_time, charge_point } = reservation;
     const stationName = await this.stationRepository.findOne({
       where: {
-        id: charge_point.station_id,
+        id: charge_point.station.id,
       },
     });
     if (!stationName) {
       throw new NotFoundException('Station not found');
     }
-    await this.mailerService.sendMail({
-      to,
-      subject: 'Notification - EV Charger',
-      template: './reservation_cancellation_notification',
-      context: {
+    const htmlContent = await this.compileTemplateFromHtml(
+      'reservation_cancellation_notification',
+      {
         driverName: reservation.account.full_name,
         reservationDay: reservation_day,
         startTime: start_time.toLocaleString(),
         endTime: end_time.toLocaleString(),
         stationName: stationName.identifier,
-        year: new Date().getFullYear(),
         cancellationTime: parse(
           start_time,
           'HH:mm',
           addMinutes(new Date(), 30),
         ).toLocaleString(),
+        year: new Date().getFullYear(),
       },
+    );
+    await this.mailerService.sendMail({
+      to,
+      subject: 'Notification - EV Charger',
+      html: htmlContent,
     });
   }
 }

@@ -14,8 +14,8 @@ export class JwtCustomService {
       expiresIn: this.configService.get<string>('EXPIRED_IN_REFRESH_TOKEN'),
     };
     this.emailTokenOptions = {
-      secret: this.configService.get<string>('SECRET_KEY_EMAIL_TOKEN'),
-      expiresIn: this.configService.get<string>('EXPIRED_IN_EMAIL_TOKEN'),
+      secret: this.configService.get<string>('SECRET_KEY_EMAIL_VERIFIED'),
+      expiresIn: this.configService.get<string>('EXPIRED_IN_EMAIL_VERIFIED'),
     };
   }
   private rfTokenOptions: JwtSignOptions;
@@ -51,6 +51,7 @@ export class JwtCustomService {
 
   // Hàm xác thực email token
   verifyEmailToken(token: string): object {
+    console.log('emailTokenOptions', this.emailTokenOptions);
     return this.jwtService.verify(token, this.emailTokenOptions);
   }
 }

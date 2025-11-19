@@ -4,9 +4,9 @@ import {
   Param,
   Post,
   Put,
-  Query,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { Body } from '@nestjs/common';
 import { StationService } from './station.service';
@@ -37,29 +37,39 @@ export class StationController {
   //___________________________________________STATION___________________________________________
   // create station
   @Post('')
-  // @UseGuards(AuthGuard('jwt'))
-  // @Roles(Role.ADMIN)
+  @UseGuards(AuthGuard('jwt'))
+  @Roles(Role.ADMIN)
   createStation(@Body() stations: CreateStationDto[]) {
     console.log('stations:', stations.length);
     return this.stationService.createStation(stations);
   }
 
-  // get all stations
-  @Get('/get-all-stations')
-  async getAllStations() {
+  // get all stations without location sorting
+  @Get('')
+  async getAllStationsWithoutLocation() {
     return await this.stationService.getAllStations();
   }
 
-  // get stations neareast
-  @Get('/')
-  async getStationsNeareast(
-    @Query('latitude') latitude: number,
-    @Query('longitude') longitude: number,
+  // get all stations (sorted by distance if user location provided)
+  @Get('/sorted')
+  async getStationsSorted(
+    @Query('latitude') latitude: string,
+    @Query('longitude') longitude: string,
   ) {
-    return await this.stationService.findStationsNeareast(
-      Number(latitude),
-      Number(longitude),
-    );
+    const lat = parseFloat(latitude);
+    const lon = parseFloat(longitude);
+    return await this.stationService.getAllStations(lat, lon);
+  }
+
+  // get all stations (backward compatible - sorted by distance if user location provided)
+  @Get('')
+  async getAllStations(
+    @Query('latitude') latitude?: string,
+    @Query('longitude') longitude?: string,
+  ) {
+    const lat = latitude ? parseFloat(latitude) : undefined;
+    const lon = longitude ? parseFloat(longitude) : undefined;
+    return await this.stationService.getAllStations(lat, lon);
   }
 
   // get station by id

@@ -107,11 +107,6 @@ export class ReservationService {
       charge_point: { id: charge_point_id },
       vehicle: { id: vehicle_id },
     });
-    // send email to account
-    // await this.mailService.sendBookingConfirmation(
-    //   nReservation.account.email,
-    //   nReservation,
-    // );
     return await this.reservationRepo.save(nReservation);
   }
 
@@ -173,7 +168,7 @@ export class ReservationService {
       if (timeDiff > this.FIFTEEN_MINUTES && timeDiff < this.THIRTY_MINUTES) {
         remindArray.push(res);
         // send email to account
-        await this.mailService.sendReminderEmail(res.account.email, res);
+        // await this.mailService.sendReminderEmail(res.account.email, res);
       }
       // expired reservation
       if (timeDiff > this.THIRTY_MINUTES) {
@@ -181,7 +176,7 @@ export class ReservationService {
         // update reservation status to expired
         await this.updateReserStatusToCancelled(res.id);
         // send email to account
-        await this.mailService.sendCancellationMail(res.account.email, res);
+        // await this.mailService.sendCancellationMail(res.account.email, res);
       }
     }
     return {

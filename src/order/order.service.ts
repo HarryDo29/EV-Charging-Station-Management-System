@@ -29,6 +29,7 @@ export class OrderService {
     if (!reservation) {
       throw new NotFoundException('Reservation not found');
     }
+
     // create order
     const order = this.orderRepository.create({
       order_type: OrderType.RESERVATION,
@@ -37,6 +38,7 @@ export class OrderService {
     console.log('order', order);
     const savedOrder = await this.orderRepository.save(order);
     console.log('savedOrder', savedOrder);
+
     // calculate total price
     const baseDate = new Date();
     const startTime = parse(reservation.start_time, 'HH:mm', baseDate);

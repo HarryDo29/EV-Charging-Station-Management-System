@@ -74,35 +74,73 @@ export class StationService {
     return nStations;
   }
 
-  // get all stations
-  async getAllStations(): Promise<StationEntity[]> {
+  // calculate distance between two points using Haversine formula (in km)
+  private calculateDistance(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ): number {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  // get all stations (sorted by distance if user location provided)
+  async getAllStations(
+    userLatitude?: number,
+    userLongitude?: number,
+  ): Promise<StationEntity[]> {
     const stations = await this.stationRepo.find();
-    // console.log('stations', stations);
+
+    // If user location is provided, sort by distance
+    if (userLatitude !== undefined && userLongitude !== undefined) {
+      return stations
+        .map((station) => ({
+          ...station,
+          distance: this.calculateDistance(
+            userLatitude,
+            userLongitude,
+            station.latitude,
+            station.longitude,
+          ),
+        }))
+        .sort((a, b) => a.distance - b.distance);
+    }
+
     return stations;
   }
 
   // get station increasing order by (latitude, longitude)
-  async findStationsNeareast(
-    latitude: number,
-    longitude: number,
-  ): Promise<StationEntity[]> {
-    const distanceAround = 5; // 5km
-    const stations = await this.stationRepo
-      .createQueryBuilder('station')
-      .addSelect(
-        `ST_Distance(POINT(station.longitude, station.latitude), POINT(${longitude}, ${latitude})) / 1000`, // Chia 1000 để đổi ra km
-        'distance_in_km', // Đặt tên cho cột "ảo"
-      )
-      .where(
-        `ST_DWithin(POINT(station.longitude, station.latitude), POINT(${longitude}, ${latitude}), :radius)`,
-        { radius: distanceAround * 1000 },
-      )
-      .orderBy('distance_in_km', 'ASC')
-      .take(20)
-      .skip(0)
-      .getMany();
-    return stations;
-  }
+  // async findStationsNeareast(
+  //   latitude: number,
+  //   longitude: number,
+  // ): Promise<StationEntity[]> {
+  //   const distanceAround = 5; // 5km
+  //   const stations = await this.stationRepo
+  //     .createQueryBuilder('station')
+  //     .addSelect(
+  //       `ST_Distance(POINT(station.longitude, station.latitude), POINT(${longitude}, ${latitude})) / 1000`, // Chia 1000 để đổi ra km
+  //       'distance_in_km', // Đặt tên cho cột "ảo"
+  //     )
+  //     .where(
+  //       `ST_DWithin(POINT(station.longitude, station.latitude), POINT(${longitude}, ${latitude}), :radius)`,
+  //       { radius: distanceAround * 1000 },
+  //     )
+  //     .orderBy('distance_in_km', 'ASC')
+  //     .take(20)
+  //     .skip(0)
+  //     .getMany();
+  //   return stations;
+  // }
 
   // update station (all fields)
   async updateStation(

@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Body,
-  Put,
-  Param,
-  Get,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
+import { Controller, Body, Put, Get, UseGuards, Request } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { UpdateAccountDto } from './dto/updatedAccount.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -17,16 +9,18 @@ import { AuthenticatedUserDto } from 'src/auth/dto/authenticated-user.dto';
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
-  @Put('/update/:id')
+  @Put('')
   @UseGuards(AuthGuard('jwt'))
   async updateAccount(
-    @Param('id') id: string,
-    @Body() account: UpdateAccountDto,
+    @Request() req: RequestExpress,
+    @Body() updateAccountDto: UpdateAccountDto,
   ) {
-    return await this.accountService.updateAccount(id, account);
+    const acc = req.user as AuthenticatedUserDto;
+    console.log('updateAccountDto', updateAccountDto);
+    return await this.accountService.updateAccount(acc.id, updateAccountDto);
   }
 
-  @Get('/get-account')
+  @Get('')
   @UseGuards(AuthGuard('jwt'))
   async getAccount(@Request() req: RequestExpress) {
     console.log('req.user', req.user);

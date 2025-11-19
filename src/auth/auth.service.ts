@@ -11,13 +11,15 @@ import { CreateAccountDto } from 'src/account/dto/createdAccount.dto';
 import { RedisService } from 'src/redis/redis.service';
 import { RefreshTokenService } from 'src/refreshToken/refreshToken.service';
 import { AccountEntity } from 'src/account/entity/account.entity';
-// import { MailService } from 'src/mail/mail.service';
+import { MailService } from 'src/mail/mail.service';
 import { RegisterDto } from './dto/registerAccount.dto';
 import { LoginDto } from './dto/loginAccount.dto';
 import { UserResponseDto } from 'src/account/dto/userResponse.dto';
 import { ChangePasswordDto } from './dto/changePassword.dto';
 import { OAuth2Dto } from './dto/oauth2.dto';
 import { CreateOAuth2AccountDto } from 'src/account/dto/createdOAuth2Account.dto';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class AuthService {
@@ -27,7 +29,9 @@ export class AuthService {
     private readonly argon2Service: Argon2Service,
     private readonly redisService: RedisService,
     private readonly refreshTokenService: RefreshTokenService,
-    // private readonly mailService: MailService,
+    private readonly mailService: MailService,
+    @InjectRepository(AccountEntity)
+    private readonly accountRepository: Repository<AccountEntity>,
   ) {}
 
   async validateAccount(oauth2Dto: OAuth2Dto): Promise<AccountEntity> {
@@ -231,11 +235,11 @@ export class AuthService {
       60 * 5,
     );
     // send email
-    // await this.mailService.sendBookingConfirmation(
-    //   account.email,
-    //   // 'Passcode',
-    //   passcode.toString(),
-    // );
+    await this.mailService.sendOtpVerification(
+      account.email,
+      passcode.toString(),
+    );
+    return;
   }
 
   async validateEmail(passcode: string, id: string): Promise<void> {
@@ -243,6 +247,7 @@ export class AuthService {
     const emailVerifiedTokenFromRedis = await this.redisService.get(
       `Email_verified:${id}`,
     );
+    console.log('emailVerifiedTokenFromRedis', emailVerifiedTokenFromRedis);
     if (!emailVerifiedTokenFromRedis) {
       throw new NotFoundException('Passcode not found');
     }
@@ -250,17 +255,26 @@ export class AuthService {
     const emailVerifiedToken = this.jwtService.verifyEmailToken(
       emailVerifiedTokenFromRedis,
     );
+    console.log('emailVerifiedToken', emailVerifiedToken);
+
     if (!emailVerifiedToken) {
       throw new UnauthorizedException('Invalid email verified token');
     }
     // check if passcode is valid
-    if (emailVerifiedToken['passcode'] !== passcode) {
+    if (emailVerifiedToken['passcode'] !== Number(passcode)) {
+      console.log(
+        'emailVerifiedToken[passcode]',
+        emailVerifiedToken['passcode'],
+      );
+      console.log('passcode received', passcode);
+      console.log('Invalid passcode');
       throw new UnauthorizedException('Invalid passcode');
     }
     // update account is verified
-    await this.accountService.updateAccount(id, {
+    const updatedAccount = await this.accountRepository.update(id, {
       is_verified: true,
     });
+    console.log('updatedAccount', updatedAccount);
   }
 
   async changePassword(

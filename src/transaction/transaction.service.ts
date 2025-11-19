@@ -74,6 +74,7 @@ export class TransactionService {
       orderCode,
       transactionCode.toString(),
     );
+    console.log('paymentLink', paymentLink);
     return paymentLink;
   }
 

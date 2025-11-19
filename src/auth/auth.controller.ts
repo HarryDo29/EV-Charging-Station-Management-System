@@ -58,12 +58,10 @@ export class AuthController {
       await this.authService.loginByEmail(loginDto);
     response.cookie('accessToken', accessToken, {
       httpOnly: true, // Bắt buộc
-      // secure: process.env.NODE_ENV === 'production',
       expires: new Date(Date.now() + 15 * 60 * 1000), // 15 phút
     });
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true, // Bắt buộc
-      // secure: process.env.NODE_ENV === 'production',
       expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 ngày
     });
     return userResponse;
@@ -78,13 +76,18 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('/validate-email')
+  @Post('/verify-email')
   async validateEmail(
-    @Body() passcode: string,
+    @Body() passcode: { otp: string },
     @Request() req: RequestExpress,
   ) {
     const acc = req.user as AuthenticatedUserDto;
-    return await this.authService.validateEmail(passcode, acc.id);
+    console.log('hello from verify-email');
+    console.log('passcode', passcode);
+    await this.authService.validateEmail(passcode.otp, acc.id);
+    return {
+      message: 'Email verified successfully',
+    };
   }
 
   @UseGuards(AuthGuard('jwt'))

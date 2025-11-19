@@ -82,7 +82,7 @@ export class StaffService {
       throw new NotFoundException('Staff not found');
     }
     return await this.chargePointRepo.find({
-      where: { station_id: staff.station.id },
+      where: { station: { id: staff.station.id } },
     });
   }
 
