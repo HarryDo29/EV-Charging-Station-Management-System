@@ -21,6 +21,18 @@ jobs:
           ENV_DELIMITER_xyz123
           echo "✅ File .env đã được tạo"
 
+      - name: Stop processes using port 3000
+        run: |
+          echo "🔍 Checking port 3000..."
+          if lsof -ti:3000 > /dev/null 2>&1; then
+            echo "⚠️ Found process on port 3000, stopping..."
+            kill -9 $(lsof -ti:3000) || true
+            echo "✅ Process stopped"
+          else
+            echo "✅ Port 3000 is free"
+          fi
+        continue-on-error: true
+
       - name: Stop old containers
         run: docker compose down || true
         continue-on-error: true
@@ -30,6 +42,23 @@ jobs:
 
       - name: Check container status
         run: docker compose ps
+
+      - name: Verify app is running in Docker
+        run: |
+          echo "🔍 Verifying deployment..."
+          sleep 5
+          if docker compose ps | grep -q "Up"; then
+            echo "✅ Docker containers are running"
+            echo ""
+            echo "📊 Container details:"
+            docker compose ps
+            echo ""
+            echo "🌐 Port mapping:"
+            docker compose port server 3000 || echo "Port mapping check failed"
+          else
+            echo "❌ Docker containers are not running properly"
+            exit 1
+          fi
 
       - name: Show logs
         run: docker compose logs --tail=50
