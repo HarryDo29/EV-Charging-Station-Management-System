@@ -16,13 +16,20 @@ Mở file `.env` ở local của bạn và copy toàn bộ nội dung.
 - **Name**: `ENV_FILE`
 - **Value**: Paste toàn bộ nội dung file .env của bạn vào đây (tất cả 51 dòng)
 
-Ví dụ format:
+⚠️ **Lưu ý quan trọng:**
+- Copy CHÍNH XÁC nội dung file .env (không thêm/bớt dòng trống)
+- Mỗi biến một dòng theo format: `KEY=value`
+- Không thêm dấu ngoặc kép bao quanh toàn bộ nội dung
+- Không thêm khoảng trắng thừa đầu/cuối
+
+Ví dụ format trong secret:
 ```
 DATABASE_URL=postgresql://user:pass@localhost:5432/db
 JWT_SECRET=your-secret-key
 REDIS_URL=redis://localhost:6379
+API_KEY=abc123xyz
 ...
-(tất cả các biến môi trường khác)
+(tất cả 51 biến môi trường khác)
 ```
 
 ## Bước 4: Save

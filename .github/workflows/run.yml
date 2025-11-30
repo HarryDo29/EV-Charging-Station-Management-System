@@ -16,7 +16,9 @@ jobs:
 
       - name: Create .env file from GitHub Secret
         run: |
-          echo "${{ secrets.ENV_FILE }}" > .env
+          cat > .env << 'ENV_DELIMITER_xyz123'
+          ${{ secrets.ENV_FILE }}
+          ENV_DELIMITER_xyz123
           echo "✅ File .env đã được tạo"
 
       - name: Stop old containers
