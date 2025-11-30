@@ -39,7 +39,7 @@ async function bootstrap() {
   // web port
   const port = process.env.PORT || 3000;
   // listen port
-  await app.listen(port, '127.0.0.1');
+  await app.listen(port);
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
-bootstrap();
+void bootstrap();
