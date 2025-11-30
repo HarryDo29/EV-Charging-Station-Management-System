@@ -10,7 +10,7 @@ import { ReservationStatus } from 'src/enums/reservation.enum';
 import { CreateReservationDto } from './dto/reservation/createReservation.dto';
 import { StationStatus } from 'src/enums/stationStatus.enum';
 import { ChargePointService } from './charge_point.service';
-import { MailService } from 'src/mail/mail.service';
+// import { MailService } from 'src/mail/mail.service';
 import { ChargePointEntity } from './entity/charge_point.entity';
 import { parse } from 'date-fns';
 
@@ -22,7 +22,7 @@ export class ReservationService {
     @InjectRepository(ChargePointEntity)
     private readonly chargePointRepo: Repository<ChargePointEntity>,
     private readonly chargePointService: ChargePointService,
-    private readonly mailService: MailService,
+    // private readonly mailService: MailService,
   ) {}
   FIFTEEN_MINUTES = 15 * 60 * 1000;
   THIRTY_MINUTES = 30 * 60 * 1000;

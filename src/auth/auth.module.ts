@@ -8,14 +8,14 @@ import { RefreshTokenModule } from 'src/refreshToken/refreshToken.module';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { RoleGuard } from './guard/role.guard';
 import { RefreshTokenStrategy } from 'src/auth/strategy/jwt-refresh.strategy';
-import { MailService } from 'src/mail/mail.service';
+// import { MailService } from 'src/mail/mail.service';
 import { AccountEntity } from 'src/account/entity/account.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefreshTokenEntity } from 'src/refreshToken/entity/refreshToken.entity';
 import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 import { StationEntity } from 'src/station/entity/station.entity';
 import { GoogleModule } from 'src/google/google.module';
-import { MailModule } from 'src/mail/mail.module';
+// import { MailModule } from 'src/mail/mail.module';
 import { AccountService } from 'src/account/account.service';
 import { JwtCustomService } from 'src/jwt/jwt.service';
 import { JwtService } from '@nestjs/jwt';
@@ -33,7 +33,7 @@ import { JwtService } from '@nestjs/jwt';
     RedisModule,
     RefreshTokenModule,
     GoogleModule,
-    MailModule,
+    // MailModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -41,7 +41,7 @@ import { JwtService } from '@nestjs/jwt';
     JwtStrategy,
     RoleGuard,
     RefreshTokenStrategy,
-    MailService,
+    // MailService,
     AccountService,
     JwtCustomService,
     JwtService,

@@ -24,7 +24,7 @@ import { R2StorageModule } from './r2Storage/r2Storage.module';
 import { StationModule } from './station/station.module';
 import { OrderModule } from './order/order.module';
 import { CheckOutModule } from './checkOut/checkOut.module';
-import { MailModule } from './mail/mail.module';
+// import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -67,7 +67,7 @@ import { MailModule } from './mail/mail.module';
     R2StorageModule,
     OrderModule,
     CheckOutModule,
-    MailModule,
+    // MailModule,
   ],
   controllers: [AppController],
   providers: [

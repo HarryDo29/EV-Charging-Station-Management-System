@@ -10,7 +10,7 @@ import { Repository } from 'typeorm';
 import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 
 import { TransactionStatus } from 'src/enums/transactionStatus.enum';
-import { MailService } from 'src/mail/mail.service';
+// import { MailService } from 'src/mail/mail.service';
 // import { OrderEntity } from 'src/order/entity/order.entity';
 // import { AccountEntity } from 'src/account/entity/account.entity';
 // import { StationEntity } from 'src/station/entity/station.entity';
@@ -34,7 +34,7 @@ export class PaymentService {
     // private readonly reservationRepository: Repository<ReservationEntity>,
     // @InjectRepository(ChargePointEntity)
     // private readonly chargePointRepository: Repository<ChargePointEntity>,
-    private readonly mailService: MailService,
+    // private readonly mailService: MailService,
   ) {}
 
   generateOrderCode(): number {
@@ -194,17 +194,17 @@ export class PaymentService {
       }
 
       // 3. Send email confirmation...
-      if (verifiedData.code === '00') {
-        await this.mailService.sendPaymentSuccess(
-          transaction.account.email,
-          transaction,
-        );
-      } else {
-        await this.mailService.sendPaymentFailed(
-          transaction.account.email,
-          transaction,
-        );
-      }
+      // if (verifiedData.code === '00') {
+      //   await this.mailService.sendPaymentSuccess(
+      //     transaction.account.email,
+      //     transaction,
+      //   );
+      // } else {
+      //   await this.mailService.sendPaymentFailed(
+      //     transaction.account.email,
+      //     transaction,
+      //   );
+      // }
       return verifiedData; // Return verified data to controller
     } catch (error) {
       console.error('Failed to verify webhook:', error);

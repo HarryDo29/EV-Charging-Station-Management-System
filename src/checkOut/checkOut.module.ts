@@ -10,7 +10,7 @@ import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 import { AccountEntity } from 'src/account/entity/account.entity';
 import { ChargePointEntity } from 'src/station/entity/charge_point.entity';
 import { ChargePointService } from 'src/station/charge_point.service';
-import { MailService } from 'src/mail/mail.service';
+// import { MailService } from 'src/mail/mail.service';
 import { OrderItemEntity } from 'src/order/entity/order_item.entity';
 import { AccountService } from 'src/account/account.service';
 import { StationEntity } from 'src/station/entity/station.entity';
@@ -36,7 +36,7 @@ import { Argon2Service } from 'src/argon2/argon2.service';
     OrderService,
     TransactionService,
     ChargePointService,
-    MailService,
+    // MailService,
     TransactionService,
     AccountService,
     Argon2Service,

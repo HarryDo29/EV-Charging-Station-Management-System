@@ -5,7 +5,7 @@ import { PaymentService } from './payment.service';
 import { PaymentController } from './payment.controller';
 import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MailService } from 'src/mail/mail.service';
+// import { MailService } from 'src/mail/mail.service';
 import { TransactionService } from 'src/transaction/transaction.service';
 import { AccountService } from 'src/account/account.service';
 import { AccountEntity } from 'src/account/entity/account.entity';
@@ -30,7 +30,7 @@ import { ChargePointEntity } from 'src/station/entity/charge_point.entity';
   ],
   controllers: [PaymentController],
   providers: [
-    MailService,
+    // MailService,
     PaymentService,
     PaymentGateway,
     {

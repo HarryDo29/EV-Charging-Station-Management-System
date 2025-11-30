@@ -9,7 +9,7 @@ import { StationStatus } from 'src/enums/stationStatus.enum';
 import { ReservationEntity } from './entity/reservation.entity';
 import { RedisService } from 'src/redis/redis.service';
 import { ReservationStatus } from 'src/enums/reservation.enum';
-import { MailService } from 'src/mail/mail.service';
+// import { MailService } from 'src/mail/mail.service';
 import { TransactionService } from 'src/transaction/transaction.service';
 import { ChargingSessionEntity } from './entity/charging_session.entity';
 import { CreateChargingSessionDto } from './dto/charging_session/createChargingSession.dto';
@@ -29,7 +29,7 @@ export class ChargePointService {
     private readonly redisService: RedisService,
     @InjectRepository(ChargingSessionEntity)
     private readonly chargingSessionRepo: Repository<ChargingSessionEntity>,
-    private readonly mailService: MailService,
+    //private readonly mailService:MailService,
     private readonly transactionService: TransactionService,
   ) {}
 

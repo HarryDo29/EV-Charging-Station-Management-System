@@ -7,7 +7,7 @@ import { ChargePointEntity } from './entity/charge_point.entity';
 import { ChargePointService } from './charge_point.service';
 import { ReservationEntity } from './entity/reservation.entity';
 import { ChargingSessionEntity } from './entity/charging_session.entity';
-import { MailService } from 'src/mail/mail.service';
+// import { MailService } from 'src/mail/mail.service';
 import { TransactionService } from 'src/transaction/transaction.service';
 import { ConfigModule } from '@nestjs/config';
 import { RedisModule } from 'src/redis/redis.module';
@@ -35,7 +35,7 @@ import { ReservationService } from './reservation.service';
     StationService,
     ChargePointService,
     ReservationService,
-    MailService,
+    // MailService,
     TransactionService,
     AccountService,
     Argon2Service,

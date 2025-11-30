@@ -11,7 +11,7 @@ import { CreateAccountDto } from 'src/account/dto/createdAccount.dto';
 import { RedisService } from 'src/redis/redis.service';
 import { RefreshTokenService } from 'src/refreshToken/refreshToken.service';
 import { AccountEntity } from 'src/account/entity/account.entity';
-import { MailService } from 'src/mail/mail.service';
+// import { MailService } from 'src/mail/mail.service';
 import { RegisterDto } from './dto/registerAccount.dto';
 import { LoginDto } from './dto/loginAccount.dto';
 import { UserResponseDto } from 'src/account/dto/userResponse.dto';
@@ -29,7 +29,7 @@ export class AuthService {
     private readonly argon2Service: Argon2Service,
     private readonly redisService: RedisService,
     private readonly refreshTokenService: RefreshTokenService,
-    private readonly mailService: MailService,
+    // private readonly mailService: MailService,
     @InjectRepository(AccountEntity)
     private readonly accountRepo: Repository<AccountEntity>,
   ) {}
@@ -231,10 +231,10 @@ export class AuthService {
       60 * 5,
     );
     // send email
-    await this.mailService.sendOtpVerification(
-      account.email,
-      passcode.toString(),
-    );
+    // await this.mailService.sendOtpVerification(
+    //   account.email,
+    //   passcode.toString(),
+    // );
     return;
   }
 
