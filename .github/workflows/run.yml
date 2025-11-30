@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, linux]
+    runs-on: self-hosted
 
     env:
       APP_DIR: ${{ github.workspace }}
