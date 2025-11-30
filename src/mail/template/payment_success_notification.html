@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thanh toán thành công</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        background-color: #28a745;
+        color: #ffffff;
+        text-align: center;
+        padding: 20px;
+        position: relative;
+      }
+      .icon-success {
+        font-size: 60px;
+        margin-bottom: 10px;
+        animation: bounce 1s ease-in-out infinite;
+      }
+      @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-10px);
+        }
+        60% {
+          transform: translateY(-5px);
+        }
+      }
+      .content {
+        padding: 20px;
+        color: #333333;
+      }
+      .status-success {
+        color: #28a745;
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        margin: 15px 0;
+      }
+      .details {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: #e9f7ea;
+        border-left: 5px solid #28a745;
+      }
+      .footer {
+        text-align: center;
+        padding: 10px;
+        font-size: 12px;
+        color: #777777;
+        background-color: #f8f9fa;
+      }
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <span class="icon-success">✔</span>
+        <h1>THANH TOÁN THÀNH CÔNG</h1>
+      </div>
+      <div class="content">
+        <p class="status-success">✔ Tài xế đã thanh toán thành công!</p>
+        <p>Kính gửi Quý Tài xế,</p>
+        <p>
+          Chúng tôi xin chúc mừng bạn! Thanh toán cho đơn hàng của bạn đã được
+          xử lý thành công.
+        </p>
+        <div class="details">
+          <p><strong>Mã đơn hàng:</strong> {{orderCode}}</p>
+          <p><strong>Thời gian thanh toán:</strong> {{dateTime}}</p>
+          <p><strong>Số tiền thanh toán:</strong> {{amount}}</p>
+          <p><strong>Bắt đầu:</strong> {{startTime}}</p>
+          <p><strong>Kết thúc:</strong> {{endTime}}</p>
+          <p><strong>Trạm sạc:</strong> {{chargePointId}}</p>
+        </div>
+        <p>
+          Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi! Nếu bạn có thắc mắc, vui
+          lòng liên hệ qua email:
+          <a href="mailto:support@example.com">support@example.com</a> hoặc số
+          điện thoại: <a href="tel:+84901234567">090 123 4567</a>.
+        </p>
+      </div>
+      <div class="footer">
+        <p>Trân trọng,<br />Đội ngũ Hỗ trợ [Tên Công ty]</p>
+        <p>&copy; {{year}} [Tên Công ty]. Đã đăng ký bản quyền.</p>
+      </div>
+    </div>
+  </body>
+</html>

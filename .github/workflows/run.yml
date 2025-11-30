@@ -1,0 +1,71 @@
+name: Deploy with Docker Compose (self-hosted)
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch: # Cho phép chạy thủ công từ GitHub UI
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux]
+
+    env:
+      APP_DIR: ${{ github.workspace }}
+      COMPOSE_FILE: compose.yaml
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Docker installation
+        run: |
+          echo "🐳 Checking Docker..."
+          docker --version
+          docker compose version
+
+      - name: Stop and remove old containers
+        run: |
+          echo "🛑 Stopping old containers..."
+          cd "${APP_DIR}"
+          docker compose -f "${COMPOSE_FILE}" down || true
+
+      - name: Remove old images (optional cleanup)
+        run: |
+          echo "🧹 Cleaning up old images..."
+          docker image prune -f --filter "dangling=true"
+        continue-on-error: true
+
+      - name: Build and start containers
+        run: |
+          echo "🔨 Building and starting containers..."
+          cd "${APP_DIR}"
+          docker compose -f "${COMPOSE_FILE}" up -d --build --remove-orphans
+
+      - name: Wait for services to be ready
+        run: |
+          echo "⏳ Waiting for services to start..."
+          sleep 10
+
+      - name: Verify deployment
+        run: |
+          echo "✅ Checking container status..."
+          docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
+          
+          echo ""
+          echo "📋 Container logs (last 20 lines):"
+          docker compose -f "${COMPOSE_FILE}" logs --tail=20
+
+      - name: Health check
+        run: |
+          echo "🏥 Running health check..."
+          if docker ps | grep -q "server"; then
+            echo "✅ Server container is running"
+          else
+            echo "❌ Server container is not running"
+            exit 1
+          fi
+
+      - name: Show disk usage
+        run: |
+          echo "💾 Docker disk usage:"
+          docker system df

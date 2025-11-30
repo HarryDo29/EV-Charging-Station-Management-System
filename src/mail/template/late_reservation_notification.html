@@ -1,0 +1,94 @@
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nhắc nhở lịch đặt sạc của bạn</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        background-color: #ffc107; /* Màu vàng nhẹ nhàng hơn */
+        color: #333333;
+        text-align: center;
+        padding: 20px;
+      }
+      .content {
+        padding: 20px;
+        color: #333333;
+      }
+      .alert-box {
+        background-color: #fff3cd;
+        padding: 15px;
+        border-left: 5px solid #ffc107;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+      .highlight {
+        font-weight: bold;
+        color: #dc3545; /* Màu đỏ nhẹ để nhấn mạnh */
+      }
+      .footer {
+        text-align: center;
+        padding: 10px;
+        font-size: 12px;
+        color: #777777;
+        background-color: #f8f9fa;
+      }
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>NHẮC NHỞ LỊCH ĐẶT SẠC</h1>
+      </div>
+      <div class="content">
+        <p>Chào {{driverName}},</p>
+        <p>
+          Chúng tôi nhận thấy bạn đã trễ một chút so với lịch đặt vị trí sạc cho
+          đơn hàng ngày <strong>{{reservationDay}}</strong> bắt đầu lúc
+          <strong>{{startTime}}</strong> và kết thúc lúc
+          <strong>{{endTime}}</strong> tại trạm
+          <strong>{{stationName}}</strong>, được lên lịch vào
+          <strong>{{scheduledTime}}</strong>. Đừng lo, bạn đã trễ hơn 15 phút,
+          nhưng chúng tôi vẫn đang giữ chỗ cho bạn!
+        </p>
+        <div class="alert-box">
+          <p class="highlight">Hành động cần thiết:</p>
+          <p>
+            Vui lòng đến trạm sạc trước <strong>{{lateTime}}</strong> để tiếp
+            tục sử dụng dịch vụ. Nếu bạn không đến kịp, lịch đặt sẽ tự động được
+            giải phóng để nhường cho các tài xế khác, nhưng đừng ngần ngại đặt
+            lại sau nhé!
+          </p>
+        </div>
+        <p>
+          Nếu bạn gặp khó khăn hoặc cần hỗ trợ, đội ngũ của chúng tôi luôn sẵn
+          sàng giúp đỡ qua email:
+          <a href="mailto:support@example.com">support@example.com</a> hoặc số
+          điện thoại: <a href="tel:+84901234567">090 123 4567</a>. Chúc bạn có
+          chuyến đi thuận lợi!
+        </p>
+      </div>
+      <div class="footer">
+        <p>Trân trọng,<br />Đội ngũ Hỗ trợ [Tên Công ty]</p>
+        <p>&copy; {{year}} [Tên Công ty]. Đã đăng ký bản quyền.</p>
+      </div>
+    </div>
+  </body>
+</html>
