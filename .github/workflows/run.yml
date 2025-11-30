@@ -45,7 +45,7 @@ jobs:
 
       - name: Verify app is running in Docker
         run: |
-          echo "🔍 Verifying deployment..."
+          echo "🔍 Verifying deployment...."
           sleep 5
           if docker compose ps | grep -q "Up"; then
             echo "✅ Docker containers are running"
