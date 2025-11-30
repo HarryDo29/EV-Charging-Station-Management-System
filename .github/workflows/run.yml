@@ -2,7 +2,7 @@ name: Deploy with Docker Compose (self-hosted)
 
 on:
   push:
-    branches: ["main"]
+    branches: ["master"]
   #workflow_dispatch: # Cho phép chạy thủ công từ GitHub UI
 
 jobs:
