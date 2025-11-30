@@ -36,9 +36,9 @@ import { ChargePointEntity } from 'src/station/entity/charge_point.entity';
     {
       provide: 'PAYOS_INSTANCE',
       useFactory: (configService: ConfigService) => {
-        const clientId = configService.get<string>('PAYOS_CLIENT_ID');
-        const apiKey = configService.get<string>('PAYOS_API_KEY');
-        const checksumKey = configService.get<string>('PAYOS_CHECKSUM_KEY');
+        const clientId = configService.get<string>('PAYOS_CLIENT_ID')!;
+        const apiKey = configService.get<string>('PAYOS_API_KEY')!;
+        const checksumKey = configService.get<string>('PAYOS_CHECKSUM_KEY')!;
 
         // Validate required PayOS credentials
         if (!clientId || !apiKey || !checksumKey) {
