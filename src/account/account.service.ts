@@ -11,6 +11,7 @@ import { CreateAccountDto } from './dto/createdAccount.dto';
 import { UpdateAccountDto } from './dto/updatedAccount.dto';
 import { CreateOAuth2AccountDto } from './dto/createdOAuth2Account.dto';
 import { UserResponseDto } from './dto/userResponse.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class AccountService {
@@ -22,15 +23,16 @@ export class AccountService {
 
   async createOAuth2Account(
     account: CreateOAuth2AccountDto,
-  ): Promise<AccountEntity> {
+  ): Promise<UserResponseDto> {
     // create account
     const newAccount = this.accountRepository.create(account);
     newAccount.is_oauth2 = true;
     // save account
-    return await this.accountRepository.save(newAccount);
+    const savedAccount = await this.accountRepository.save(newAccount);
+    return plainToInstance(UserResponseDto, savedAccount);
   }
 
-  async createAccount(account: CreateAccountDto): Promise<AccountEntity> {
+  async createAccount(account: CreateAccountDto): Promise<UserResponseDto> {
     // hash password
     const hashedPassword = await this.argon2Service.hash(account.password);
     // create account
@@ -39,7 +41,8 @@ export class AccountService {
       password_hash: hashedPassword,
     });
     // save account
-    return await this.accountRepository.save(newAccount);
+    const savedAccount = await this.accountRepository.save(newAccount);
+    return plainToInstance(UserResponseDto, savedAccount);
   }
 
   async findAccountByEmail(email: string): Promise<AccountEntity | null> {
@@ -59,7 +62,7 @@ export class AccountService {
   async updateAccount(
     account_id: string,
     updateAccountDto: UpdateAccountDto,
-  ): Promise<AccountEntity | null> {
+  ): Promise<UserResponseDto | null> {
     // find account
     const acc = await this.accountRepository.findOne({
       where: { id: account_id },
@@ -74,16 +77,12 @@ export class AccountService {
     if (result.affected === 0) {
       throw new BadRequestException('Failed to update account');
     }
-    return await this.accountRepository.findOne({
-      where: { id: account_id },
-    });
+    return await this.findAccountById(account_id);
   }
 
   async deleteAccount(id: string): Promise<UpdateResult> {
     // find account
-    const acc = await this.accountRepository.findOne({
-      where: { id },
-    });
+    const acc = await this.findAccountById(id);
     if (!acc) {
       throw new NotFoundException('Account not found');
     }
@@ -108,22 +107,14 @@ export class AccountService {
       relations: {
         vehicles: true,
         user_subscriptions: true,
-        // staff: true,
         transactions: true,
-        reservations: {
-          charge_point: {
-            station: true,
-          },
-        },
-        orders: {
-          items: true,
-          transaction: true,
-        },
       },
     });
     if (!account) {
       throw new NotFoundException('Account not found');
     }
-    return account;
+    return plainToInstance(UserResponseDto, account, {
+      excludeExtraneousValues: true,
+    });
   }
 }

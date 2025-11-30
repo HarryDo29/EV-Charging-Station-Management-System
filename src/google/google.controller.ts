@@ -5,7 +5,7 @@ import type {
   Response as ResponseExpress,
 } from 'express';
 import { AuthService } from 'src/auth/auth.service';
-import { AccountEntity } from 'src/account/entity/account.entity';
+import { UserResponseDto } from 'src/account/dto/userResponse.dto';
 
 @Controller('google')
 export class GoogleController {
@@ -14,7 +14,7 @@ export class GoogleController {
   @Get('/redirect')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect() {
-    // Bắt đầu quá trình xác thực, Passport sẽ xử lý
+    // Start the authentication process, Passport will handle the rest
   }
 
   @Get('callback')
@@ -23,21 +23,19 @@ export class GoogleController {
     @Req() req: RequestExpress,
     @Response() response: ResponseExpress,
   ): Promise<void> {
-    const user: AccountEntity = req.user as AccountEntity; // User đã được validate từ strategy
+    const user: UserResponseDto = req.user as UserResponseDto; // User validated from strategy
     const { accessToken, refreshToken } =
       await this.authService.loginByOAuth2(user);
     response.cookie('accessToken', accessToken, {
       httpOnly: true,
-      expires: new Date(Date.now() + 15 * 60 * 1000), // 15 phút
+      secure: process.env.NODE_ENV === 'production',
+      expires: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
     });
-    console.log('save access token to cookie');
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 ngày
+      secure: process.env.NODE_ENV === 'production',
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     });
-    console.log('save refresh token to cookie');
-    // Tạo session hoặc JWT nếu cần
-    // Chuyển hướng sau khi xác thực
     response.redirect('http://localhost:5173/');
   }
 }

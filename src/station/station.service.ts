@@ -6,7 +6,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   ArrayOverlap,
-  Between,
   FindOptionsWhere,
   In,
   LessThanOrEqual,
@@ -19,6 +18,7 @@ import { UpdateStationDto } from './dto/station/updateStation.dto';
 import { ConnectorType } from 'src/enums/connector.enum';
 import { StationStatus } from 'src/enums/stationStatus.enum';
 import { FilterStationDto } from './dto/station/filterStation.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class StationService {
@@ -39,17 +39,14 @@ export class StationService {
     const lonErrRange = 0.1 / (111.32 * Math.cos(latToRadian));
     // check if station is within 0.1 km
     const query = this.stationRepo.createQueryBuilder('station');
-    query.where('station.latitude BETWEEN :startLatitude AND :endLatitude', {
-      startLatitude: latitude - latErrRange,
-      endLatitude: latitude + latErrRange,
+    query.where('station.coordinates[0] BETWEEN :startLat AND :endLat', {
+      startLat: latitude - latErrRange,
+      endLat: latitude + latErrRange,
     });
-    query.andWhere(
-      'station.longitude BETWEEN :startLongitude AND :endLongitude',
-      {
-        startLongitude: longitude - lonErrRange,
-        endLongitude: longitude + lonErrRange,
-      },
-    );
+    query.andWhere('station.coordinates[1] BETWEEN :startLong AND :endLong', {
+      startLong: longitude - lonErrRange,
+      endLong: longitude + lonErrRange,
+    });
     const station = await query.getOne();
     return station ? true : false;
   }
@@ -67,31 +64,12 @@ export class StationService {
       if (isDuplicate) {
         throw new BadRequestException('Station is duplicate');
       }
-      const nStation = this.stationRepo.create({ ...station });
+      const stationEntity = plainToInstance(StationEntity, station);
+      stationEntity.setCoordinates(station.longitude, station.latitude);
+      const nStation = await this.stationRepo.save(stationEntity);
       nStations.push(nStation);
-      await this.stationRepo.save(nStation);
     }
     return nStations;
-  }
-
-  // calculate distance between two points using Haversine formula (in km)
-  private calculateDistance(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number,
-  ): number {
-    const R = 6371; // Radius of the Earth in km
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
   }
 
   // get all stations (sorted by distance if user location provided)
@@ -99,48 +77,20 @@ export class StationService {
     userLatitude?: number,
     userLongitude?: number,
   ): Promise<StationEntity[]> {
-    const stations = await this.stationRepo.find();
-
     // If user location is provided, sort by distance
     if (userLatitude !== undefined && userLongitude !== undefined) {
-      return stations
-        .map((station) => ({
-          ...station,
-          distance: this.calculateDistance(
-            userLatitude,
-            userLongitude,
-            station.latitude,
-            station.longitude,
-          ),
-        }))
-        .sort((a, b) => a.distance - b.distance);
+      const stations = await this.stationRepo
+        .createQueryBuilder('station')
+        .addSelect(
+          `ST_DistanceSphere(station.coordinates, ST_SetSRID(ST_MakePoint(${userLongitude}, ${userLatitude}), 4326))`,
+          'distance',
+        )
+        .orderBy('distance', 'ASC')
+        .getMany();
+      return stations;
     }
-
-    return stations;
+    return await this.stationRepo.find();
   }
-
-  // get station increasing order by (latitude, longitude)
-  // async findStationsNeareast(
-  //   latitude: number,
-  //   longitude: number,
-  // ): Promise<StationEntity[]> {
-  //   const distanceAround = 5; // 5km
-  //   const stations = await this.stationRepo
-  //     .createQueryBuilder('station')
-  //     .addSelect(
-  //       `ST_Distance(POINT(station.longitude, station.latitude), POINT(${longitude}, ${latitude})) / 1000`, // Chia 1000 để đổi ra km
-  //       'distance_in_km', // Đặt tên cho cột "ảo"
-  //     )
-  //     .where(
-  //       `ST_DWithin(POINT(station.longitude, station.latitude), POINT(${longitude}, ${latitude}), :radius)`,
-  //       { radius: distanceAround * 1000 },
-  //     )
-  //     .orderBy('distance_in_km', 'ASC')
-  //     .take(20)
-  //     .skip(0)
-  //     .getMany();
-  //   return stations;
-  // }
 
   // update station (all fields)
   async updateStation(
@@ -176,26 +126,6 @@ export class StationService {
 
   async getStationById(id: string): Promise<StationEntity | null> {
     return await this.stationRepo.findOne({ where: { id } });
-  }
-
-  // get stations around 1km (default) or take from request
-  async getStationsAround(
-    latitude: number,
-    longitude: number,
-    radisusKm: number = 1, // default 1km
-  ): Promise<StationEntity[]> {
-    // latitude: km to degree
-    const latErrRange = radisusKm / 111.32;
-    const latToRadian = latitude * (Math.PI / 180);
-    // longitude: km to degree
-    const lonErrRange = radisusKm / (111.32 * Math.cos(latToRadian));
-    // return stations around 1km (default) or take from request
-    return await this.stationRepo.find({
-      where: {
-        latitude: Between(latitude - latErrRange, latitude + latErrRange),
-        longitude: Between(longitude - lonErrRange, longitude + lonErrRange),
-      },
-    });
   }
 
   async getStationsByConnectorType(

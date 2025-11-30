@@ -31,10 +31,10 @@ export class AuthService {
     private readonly refreshTokenService: RefreshTokenService,
     private readonly mailService: MailService,
     @InjectRepository(AccountEntity)
-    private readonly accountRepository: Repository<AccountEntity>,
+    private readonly accountRepo: Repository<AccountEntity>,
   ) {}
 
-  async validateAccount(oauth2Dto: OAuth2Dto): Promise<AccountEntity> {
+  async validateAccount(oauth2Dto: OAuth2Dto): Promise<UserResponseDto> {
     const { email, name, avatar_url, google_id } = oauth2Dto;
     // check if account already exists
     const account = await this.accountService.findAccountByEmail(email);
@@ -44,15 +44,13 @@ export class AuthService {
     // create account
     const nCreated = new CreateOAuth2AccountDto();
     nCreated.email = email;
-    nCreated.password = '';
     nCreated.full_name = name;
     nCreated.avatar_url = avatar_url;
     nCreated.google_id = google_id;
-    const newAccount = await this.accountService.createOAuth2Account(nCreated);
-    return newAccount;
+    return await this.accountService.createOAuth2Account(nCreated);
   }
 
-  async loginByOAuth2(account: AccountEntity): Promise<{
+  async loginByOAuth2(account: UserResponseDto): Promise<{
     userResponse: UserResponseDto;
     accessToken: string;
     refreshToken: string;
@@ -70,8 +68,6 @@ export class AuthService {
         role: account.role,
       }),
     ]);
-    console.log('accessToken', accessToken);
-    console.log('refreshToken', refreshToken);
     // set access token to redis
     await Promise.all([
       this.redisService.set(`id:${account.id}`, accessToken, 60 * 60),
@@ -247,7 +243,6 @@ export class AuthService {
     const emailVerifiedTokenFromRedis = await this.redisService.get(
       `Email_verified:${id}`,
     );
-    console.log('emailVerifiedTokenFromRedis', emailVerifiedTokenFromRedis);
     if (!emailVerifiedTokenFromRedis) {
       throw new NotFoundException('Passcode not found');
     }
@@ -255,26 +250,19 @@ export class AuthService {
     const emailVerifiedToken = this.jwtService.verifyEmailToken(
       emailVerifiedTokenFromRedis,
     );
-    console.log('emailVerifiedToken', emailVerifiedToken);
 
     if (!emailVerifiedToken) {
       throw new UnauthorizedException('Invalid email verified token');
     }
     // check if passcode is valid
     if (emailVerifiedToken['passcode'] !== Number(passcode)) {
-      console.log(
-        'emailVerifiedToken[passcode]',
-        emailVerifiedToken['passcode'],
-      );
-      console.log('passcode received', passcode);
-      console.log('Invalid passcode');
       throw new UnauthorizedException('Invalid passcode');
     }
     // update account is verified
-    const updatedAccount = await this.accountRepository.update(id, {
+    await this.accountRepo.update(id, {
       is_verified: true,
     });
-    console.log('updatedAccount', updatedAccount);
+    return;
   }
 
   async changePassword(
@@ -298,9 +286,10 @@ export class AuthService {
     const hashedPassword = await this.argon2Service.hash(
       changePasswordDto.password,
     );
-    await this.accountService.updateAccount(id, {
+    await this.accountRepo.update(id, {
       password_hash: hashedPassword,
     });
+    return;
   }
 
   async logout(account: AccountEntity): Promise<void> {

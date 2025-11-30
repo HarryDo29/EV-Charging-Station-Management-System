@@ -6,7 +6,7 @@ import { JwtModule } from 'src/jwt/jwt.module';
 import { RedisModule } from 'src/redis/redis.module';
 import { RefreshTokenModule } from 'src/refreshToken/refreshToken.module';
 import { JwtStrategy } from './strategy/jwt.strategy';
-import { RoleGaurd } from './gaurd/role.gaurd';
+import { RoleGuard } from './guard/role.guard';
 import { RefreshTokenStrategy } from 'src/auth/strategy/jwt-refresh.strategy';
 import { MailService } from 'src/mail/mail.service';
 import { AccountEntity } from 'src/account/entity/account.entity';
@@ -39,13 +39,13 @@ import { JwtService } from '@nestjs/jwt';
   providers: [
     AuthService,
     JwtStrategy,
-    RoleGaurd,
+    RoleGuard,
     RefreshTokenStrategy,
     MailService,
     AccountService,
     JwtCustomService,
     JwtService,
   ],
-  exports: [AuthService, JwtStrategy, RoleGaurd],
+  exports: [AuthService, JwtStrategy, RoleGuard],
 })
 export class AuthModule {}

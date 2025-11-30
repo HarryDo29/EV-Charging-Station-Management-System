@@ -4,6 +4,7 @@ import { UpdateAccountDto } from './dto/updatedAccount.dto';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request as RequestExpress } from 'express';
 import { AuthenticatedUserDto } from 'src/auth/dto/authenticated-user.dto';
+import { UserResponseDto } from './dto/userResponse.dto';
 
 @Controller('account')
 export class AccountController {
@@ -14,19 +15,15 @@ export class AccountController {
   async updateAccount(
     @Request() req: RequestExpress,
     @Body() updateAccountDto: UpdateAccountDto,
-  ) {
+  ): Promise<UserResponseDto | null> {
     const acc = req.user as AuthenticatedUserDto;
-    console.log('updateAccountDto', updateAccountDto);
     return await this.accountService.updateAccount(acc.id, updateAccountDto);
   }
 
   @Get('')
   @UseGuards(AuthGuard('jwt'))
-  async getAccount(@Request() req: RequestExpress) {
-    console.log('req.user', req.user);
+  async getAccount(@Request() req: RequestExpress): Promise<UserResponseDto> {
     const acc = req.user as AuthenticatedUserDto;
-    const account = await this.accountService.getAccount(acc.id);
-    console.log('account', account);
-    return account;
+    return await this.accountService.getAccount(acc.id);
   }
 }

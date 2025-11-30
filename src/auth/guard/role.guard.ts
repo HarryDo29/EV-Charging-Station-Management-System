@@ -5,24 +5,24 @@ import { Role } from 'src/enums/role.enum';
 import { AuthenticatedUserDto } from '../dto/authenticated-user.dto';
 
 @Injectable()
-export class RoleGaurd implements CanActivate {
+export class RoleGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    // 1. Lấy ra các role được yêu cầu từ decorator @Roles
+    // 1. Take roles from decorator @Roles
     const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
-    // Nếu endpoint không yêu cầu role nào, cho phép truy cập
+    // If endpoint does not require any role, allow access
     if (!requiredRoles) {
       return true;
     }
-    // 2. Lấy thông tin user từ request
-    // (Giả sử AuthGuard('jwt') đã chạy trước và gắn `user` vào request)
+    // 2. Take user information from request
+    // (Assume AuthGuard('jwt') has run before and attached `user` to request)
     const user = context.switchToHttp().getRequest<AuthenticatedUserDto>();
-    // 3. Kiểm tra xem user có role phù hợp không
-    // Trả về true nếu user có ít nhất MỘT trong các role được yêu cầu
+    // 3. Check if user has the required role
+    // Return true if user has at least one of the required roles
     return requiredRoles.some((role) => role.includes(user.role));
   }
 }

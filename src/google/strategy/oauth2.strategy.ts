@@ -34,7 +34,7 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, 'google') {
     if (!emails) {
       throw new UnauthorizedException('No email found');
     }
-    // Xử lý profile từ nhà cung cấp (Google)
+    // Process profile from provider (Google)
     const user: OAuth2Dto = {
       google_id: id,
       email: emails[0].value,
@@ -43,7 +43,7 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, 'google') {
       avatar_url: photos?.[0]?.value || '',
     };
 
-    // Gọi service để lưu hoặc kiểm tra user
+    // Call service to save or check user
     return await this.authService.validateAccount(user);
   }
 }

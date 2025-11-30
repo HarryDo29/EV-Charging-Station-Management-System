@@ -19,7 +19,7 @@ import type {
 } from 'express';
 import { ChangePasswordDto } from './dto/changePassword.dto';
 import { UserResponseDto } from 'src/account/dto/userResponse.dto';
-import { RefreshTokenGuard } from 'src/auth/gaurd/rfToken.gaurd';
+import { RefreshTokenGuard } from 'src/auth/guard/rfToken.guard';
 
 @Controller('/auth')
 export class AuthController {
@@ -37,14 +37,16 @@ export class AuthController {
     const { userResponse, accessToken, refreshToken } =
       await this.authService.registerByEmail(registerDto);
     response.cookie('accessToken', accessToken, {
-      httpOnly: true, // Bắt buộc
-      // secure: process.env.NODE_ENV === 'production',
-      expires: new Date(Date.now() + 15 * 60 * 1000), // 15 phút
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      // sameSite: 'strict',
+      expires: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
     });
     response.cookie('refreshToken', refreshToken, {
-      httpOnly: true, // Bắt buộc
-      // secure: process.env.NODE_ENV === 'production',
-      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 ngày
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      // sameSite: 'strict',
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     });
     return userResponse;
   }
@@ -57,12 +59,16 @@ export class AuthController {
     const { userResponse, accessToken, refreshToken } =
       await this.authService.loginByEmail(loginDto);
     response.cookie('accessToken', accessToken, {
-      httpOnly: true, // Bắt buộc
-      expires: new Date(Date.now() + 15 * 60 * 1000), // 15 phút
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      // sameSite: 'strict',
+      expires: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
     });
     response.cookie('refreshToken', refreshToken, {
-      httpOnly: true, // Bắt buộc
-      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 ngày
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      // sameSite: 'strict',
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     });
     return userResponse;
   }
@@ -72,7 +78,10 @@ export class AuthController {
   async sendPasscode(@Request() req: RequestExpress) {
     const acc = req.user as AuthenticatedUserDto;
     const account = await this.accountService.findAccountById(acc.id);
-    return await this.authService.sendPasscode(account!);
+    if (!account) {
+      throw new Error('Account not found');
+    }
+    return await this.authService.sendPasscode(account);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -82,8 +91,6 @@ export class AuthController {
     @Request() req: RequestExpress,
   ) {
     const acc = req.user as AuthenticatedUserDto;
-    console.log('hello from verify-email');
-    console.log('passcode', passcode);
     await this.authService.validateEmail(passcode.otp, acc.id);
     return {
       message: 'Email verified successfully',
@@ -97,7 +104,10 @@ export class AuthController {
     @Request() req: RequestExpress,
   ) {
     const acc = req.user as AuthenticatedUserDto;
-    return await this.authService.changePassword(acc.id, changePasswordDto);
+    await this.authService.changePassword(acc.id, changePasswordDto);
+    return {
+      message: 'Password changed successfully',
+    };
   }
 
   @UseGuards(RefreshTokenGuard)
@@ -107,16 +117,19 @@ export class AuthController {
     @Response({ passthrough: true }) response: ResponseExpress,
   ) {
     const acc = req.user as AuthenticatedUserDto;
-    console.log('acc from refreshAccessToken', acc);
     const { accessToken, refreshToken } =
       await this.refreshTokenService.refreshAccessToken(acc);
     response.cookie('accessToken', accessToken, {
       httpOnly: true,
-      expires: new Date(Date.now() + 15 * 60 * 1000), // 15 phút
+      secure: process.env.NODE_ENV === 'production',
+      // sameSite: 'strict',
+      expires: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
     });
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 ngày
+      secure: process.env.NODE_ENV === 'production',
+      // sameSite: 'strict',
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     });
     return {
       message: 'Refresh access token successfully',
@@ -131,7 +144,10 @@ export class AuthController {
   ): Promise<{ message: string }> {
     const acc = req.user as AuthenticatedUserDto;
     const account = await this.accountService.findAccountById(acc.id);
-    await this.authService.logout(account!);
+    if (!account) {
+      throw new Error('Account not found');
+    }
+    await this.authService.logout(account);
     response.clearCookie('accessToken');
     response.clearCookie('refreshToken');
     return {

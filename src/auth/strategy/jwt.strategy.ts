@@ -15,8 +15,6 @@ const cookieExtractor = (req: RequestExpress): string | null => {
     const cookie = req.cookies as Record<string, unknown>;
     token =
       typeof cookie['accessToken'] === 'string' ? cookie['accessToken'] : null;
-  } else {
-    console.log('no access token in cookies');
   }
   return token;
 };

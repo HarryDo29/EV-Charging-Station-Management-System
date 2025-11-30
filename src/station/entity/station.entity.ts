@@ -4,10 +4,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import type { Point } from 'geojson';
 import { ChargePointEntity } from './charge_point.entity';
 import { StaffEntity } from 'src/staff/entity/staff.entity';
 
@@ -25,13 +27,21 @@ export class StationEntity {
   @Column({ unique: true })
   address: string;
 
-  // vĩ độ
-  @Column('decimal', { precision: 9, scale: 6 })
-  latitude: number;
+  // // vĩ độ
+  // @Column('decimal', { precision: 9, scale: 6 })
+  // latitude: number;
 
-  // kinh độ
-  @Column('decimal', { precision: 9, scale: 6 })
-  longitude: number;
+  // // kinh độ
+  // @Column('decimal', { precision: 9, scale: 6 })
+  // longitude: number;
+
+  @Column({
+    type: 'geometry',
+    spatialFeatureType: 'Point',
+    srid: 4326,
+  })
+  @Index({ spatial: true }) // 👈 Spatial index
+  coordinates: Point;
 
   @Column({
     type: 'enum',
@@ -68,4 +78,32 @@ export class StationEntity {
 
   @OneToMany(() => StaffEntity, (staff) => staff.station)
   staff: StaffEntity[];
+
+  // 👇 Helper methods
+  getLng(): number {
+    if (
+      !this.coordinates?.coordinates ||
+      this.coordinates.coordinates.length < 2
+    ) {
+      return 0;
+    }
+    return this.coordinates.coordinates[0];
+  }
+
+  getLat(): number {
+    if (
+      !this.coordinates?.coordinates ||
+      this.coordinates.coordinates.length < 2
+    ) {
+      return 0;
+    }
+    return this.coordinates.coordinates[1];
+  }
+
+  setCoordinates(lng: number, lat: number): void {
+    this.coordinates = {
+      type: 'Point',
+      coordinates: [lng, lat],
+    };
+  }
 }

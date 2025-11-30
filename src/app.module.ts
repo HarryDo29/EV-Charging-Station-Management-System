@@ -10,7 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { AccountModule } from './account/account.module';
 import { APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { RoleGaurd } from './auth/gaurd/role.gaurd';
+import { RoleGuard } from 'src/auth/guard/role.guard';
 import { VehicleModule } from './vehicle/vehicle.module';
 import { PaymentModule } from './payment/payment.module';
 import { TransactionModule } from './transaction/transaction.module';
@@ -49,6 +49,7 @@ import { MailModule } from './mail/mail.module';
         connection: {
           host: configService.get<string>('REDIS_HOST')!,
           port: parseInt(configService.get<string>('REDIS_PORT')!, 10),
+          password: configService.get<string>('REDIS_PASSWORD')!,
         },
       }),
     }),
@@ -77,7 +78,7 @@ import { MailModule } from './mail/mail.module';
     },
     {
       provide: APP_GUARD, // Tell NestJS that this is a global guard
-      useClass: RoleGaurd,
+      useClass: RoleGuard,
     },
   ],
 })
