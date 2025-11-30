@@ -14,6 +14,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create .env file from GitHub Secret
+        run: |
+          echo "${{ secrets.ENV_FILE }}" > .env
+          echo "✅ File .env đã được tạo"
+
       - name: Stop old containers
         run: docker compose down || true
         continue-on-error: true
