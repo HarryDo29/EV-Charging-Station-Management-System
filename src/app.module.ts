@@ -31,6 +31,7 @@ import { CheckOutModule } from './checkOut/checkOut.module';
     // Config for .env
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
       load: [databaseConfig, redisConfig],
     }),
     // Config for TypeOrm

@@ -108,6 +108,7 @@ export class AuthService {
     nCreated.full_name = full_name;
     const newAccount = await this.accountService.createAccount(nCreated);
     // generate access and refresh tokens
+    console.log('newAccount', newAccount);
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.sign({
         id: newAccount.id,
@@ -120,6 +121,8 @@ export class AuthService {
         role: newAccount.role,
       }),
     ]);
+    console.log('accessToken', accessToken);
+    console.log('refreshToken', refreshToken);
     // set access token to redis
     await Promise.all([
       this.redisService.set(`id:${newAccount.id}`, accessToken, 60 * 60),

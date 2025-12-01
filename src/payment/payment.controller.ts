@@ -6,6 +6,7 @@ import {
   Res,
   NotFoundException,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiExcludeEndpoint } from '@nestjs/swagger';
 import { PaymentService } from './payment.service';
 import { PaymentGateway } from './payment.gateway'; // Import Gateway for sending signal to Frontend
 import type { Webhook } from '@payos/node';
@@ -14,6 +15,7 @@ import { Repository } from 'typeorm';
 import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 
+@ApiTags('Payment')
 @Controller('payment')
 export class PaymentController {
   constructor(
@@ -23,8 +25,12 @@ export class PaymentController {
     private readonly transactionRepository: Repository<TransactionEntity>,
   ) {}
 
-  // Endpoint for PayOS to call when there is an update in status
   @Post('webhook')
+  @ApiExcludeEndpoint()
+  @ApiOperation({ summary: 'Payment webhook endpoint (called by PayOS)' })
+  @ApiResponse({ status: 200, description: 'Webhook received and processed successfully' })
+  @ApiResponse({ status: 404, description: 'Transaction or order not found' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   async handleWebhook(@Body() body: Webhook, @Res() res: ExpressResponse) {
     try {
       // 1. Verify webhook data

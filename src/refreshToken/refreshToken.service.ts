@@ -51,16 +51,11 @@ export class RefreshTokenService {
       name: account.full_name,
       role: account.role,
     });
-    const newRefreshToken = this.jwtService.signRefreshToken(
-      {
-        id: account.id,
-        name: account.full_name,
-        role: account.role,
-      },
-      {
-        expiresIn: (user.exp! - Date.now()) * 1000,
-      },
-    );
+    const newRefreshToken = this.jwtService.signRefreshToken({
+      id: account.id,
+      name: account.full_name,
+      role: account.role,
+    });
     // set access token to redis
     await Promise.all([
       this.redisService.set(`id:${account.id}`, newAccessToken, 15 * 60 * 60), // 15 minutes

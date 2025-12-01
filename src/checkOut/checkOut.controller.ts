@@ -7,6 +7,7 @@ import type { Request as RequestExpress } from 'express';
 import { AuthenticatedUserDto } from 'src/auth/dto/authenticated-user.dto';
 import { TransactionType } from 'src/enums/transactionType.enum';
 import { CreateReservationDto } from 'src/station/dto/reservation/createReservation.dto';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('checkout')
 export class CheckOutController {
@@ -18,6 +19,15 @@ export class CheckOutController {
 
   @Post('/reservation')
   @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Checkout a reservation' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reservation checked out successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid reservation data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Reservation not found' })
   async checkoutReservation(
     @Req() req: RequestExpress,
     @Body()

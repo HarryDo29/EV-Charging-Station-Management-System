@@ -1,7 +1,7 @@
 // src/jwt/jwt.service.ts
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService, JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 
 @Injectable()
 export class JwtCustomService {
@@ -22,20 +22,19 @@ export class JwtCustomService {
   private emailTokenOptions: JwtSignOptions;
 
   // Hàm tạo access token (mặc định là kí cho access token)
-  sign(payload: object, options?: JwtSignOptions): string {
-    return this.jwtService.sign(payload, options);
+  sign(payload: object): string {
+    return this.jwtService.sign(payload);
   }
 
   // Hàm xác thực token (mặc định là xác thực cho access token)
-  verify(token: string, options?: JwtVerifyOptions): object {
-    return this.jwtService.verify(token, options);
+  verify(token: string): object {
+    return this.jwtService.verify(token);
   }
 
   // Hàm kí refresh token
-  signRefreshToken(payload: object, options?: JwtSignOptions): string {
+  signRefreshToken(payload: object): string {
     return this.jwtService.sign(payload, {
       ...this.rfTokenOptions,
-      ...options,
     });
   }
 

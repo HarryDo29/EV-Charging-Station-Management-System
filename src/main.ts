@@ -5,24 +5,30 @@ import { ValidationPipe } from '@nestjs/common';
 import { TransformInterceptor } from './interceptor/transform.interceptor';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // // --- SWAGGER CONFIG ---
-  // const config = new DocumentBuilder()
-  //   .setTitle('EV Charger System API Documentation') // Title of API
-  //   .setDescription('The API description') // Description of API
-  //   .setVersion('1.0') // Version
-  //   // .addTag('api') // Add tag to group API
-  //   .build();
+  const config = new DocumentBuilder()
+    .setTitle('EV Charging Station API') // Tên dự án
+    .setDescription('API documentation for EV Charging System') // Mô tả
+    .setVersion('1.0') // Phiên bản
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth', // Đây là tên tham chiếu (security name)
+    )
+    .build();
 
-  // const document = SwaggerModule.createDocument(app, config);
-  // SwaggerModule.setup('api', app, document);
-  // 'api' is the path to access, example: http://localhost:3000/api
-
-  // --- SWAGGER CONFIG END ---
-
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('swagger', app, document);
   //use cookie parser at global for all controllers
   app.use(cookieParser());
   // // use cors at global for all controllers

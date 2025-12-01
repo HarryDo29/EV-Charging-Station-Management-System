@@ -9,14 +9,21 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     NestJwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('SECRET_KEY_ACCESS_TOKEN'),
-        // Đọc secret key từ .env
-        signOptions: {
-          expiresIn: configService.get<string>('EXPIRED_IN_ACCESS_TOKEN'),
-          // Thời gian sống
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const secret = configService.get<string>('SECRET_KEY_ACCESS_TOKEN');
+        const expiresIn = configService.get<string>('EXPIRED_IN_ACCESS_TOKEN');
+        if (!secret) {
+          throw new Error(
+            'SECRET_KEY_ACCESS_TOKEN is not defined in .env file. Please check your .env file.',
+          );
+        }
+        return {
+          secret,
+          signOptions: {
+            expiresIn: expiresIn || '60m',
+          },
+        };
+      },
     }),
   ],
   providers: [JwtCustomService],

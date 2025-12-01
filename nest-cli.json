@@ -10,5 +10,15 @@
         "outDir": "dist"
       }
     ]
-  }
+  },
+  "plugins": [
+    {
+      "name": "@nestjs/swagger",
+      "options": {
+        "dtoFileNameSuffix": [".dto.ts"],
+        "classValidatorShim": true,
+        "introspectComments": true
+      }
+    }
+  ]
 }
