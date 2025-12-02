@@ -17,6 +17,7 @@ import { StationEntity } from 'src/station/entity/station.entity';
 import { GoogleModule } from 'src/google/google.module';
 // import { MailModule } from 'src/mail/mail.module';
 import { AccountService } from 'src/account/account.service';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { AccountService } from 'src/account/account.service';
     RefreshTokenStrategy,
     // MailService,
     AccountService,
+    ConfigService,
   ],
   exports: [AuthService, JwtStrategy, RoleGuard],
 })

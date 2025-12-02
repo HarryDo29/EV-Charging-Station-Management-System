@@ -27,6 +27,7 @@ import type {
 import { ChangePasswordDto } from './dto/changePassword.dto';
 import { UserResponseDto } from 'src/account/dto/userResponse.dto';
 import { RefreshTokenGuard } from 'src/auth/guard/rfToken.guard';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('Authentication')
 @Controller('/auth')
@@ -35,6 +36,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly accountService: AccountService,
     private readonly refreshTokenService: RefreshTokenService,
+    private readonly configService: ConfigService,
   ) {}
 
   @Post('/register')
@@ -56,10 +58,16 @@ export class AuthController {
     console.log('refreshToken', refreshToken);
     response.cookie('accessToken', accessToken, {
       httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: this.configService.get<string>('FRONTEND_URL')!,
       expires: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
     });
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: this.configService.get<string>('FRONTEND_URL')!,
       expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     });
     return userResponse;
@@ -87,6 +95,9 @@ export class AuthController {
     });
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: this.configService.get<string>('FRONTEND_URL')!,
       expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     });
     return userResponse;
@@ -168,10 +179,16 @@ export class AuthController {
       await this.refreshTokenService.refreshAccessToken(acc);
     response.cookie('accessToken', accessToken, {
       httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: this.configService.get<string>('FRONTEND_URL')!,
       expires: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
     });
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: this.configService.get<string>('FRONTEND_URL')!,
       expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     });
     return {
