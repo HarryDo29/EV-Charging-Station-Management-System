@@ -34,7 +34,11 @@ async function bootstrap() {
   // // use cors at global for all controllers
   app.use(
     cors({
-      origin: ['http://localhost:5173', 'https://accounts.google.com'],
+      origin: [
+        'http://localhost:5173',
+        'https://accounts.google.com',
+        'https://harydo.xyz',
+      ],
       credentials: true,
     }),
   );
