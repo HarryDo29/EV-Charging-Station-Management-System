@@ -60,14 +60,16 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: '.harydo.xyz',
+      domain: '.harrydo.xyz',
+      path: '/',
       expires: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
     });
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: '.harydo.xyz',
+      domain: '.harrydo.xyz',
+      path: '/',
       expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     });
     return userResponse;
@@ -91,13 +93,18 @@ export class AuthController {
     console.log('refreshToken', refreshToken);
     response.cookie('accessToken', accessToken, {
       httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: '.harrydo.xyz',
+      path: '/',
       expires: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
     });
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: '.harydo.xyz',
+      domain: '.harrydo.xyz',
+      path: '/',
       expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     });
     return userResponse;
@@ -181,14 +188,16 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: '.harydo.xyz',
+      domain: '.harrydo.xyz',
+      path: '/',
       expires: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
     });
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: '.harydo.xyz',
+      domain: '.harrydo.xyz',
+      path: '/',
       expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     });
     return {
@@ -213,8 +222,14 @@ export class AuthController {
       throw new Error('Account not found');
     }
     await this.authService.logout(account);
-    response.clearCookie('accessToken');
-    response.clearCookie('refreshToken');
+    response.clearCookie('accessToken', {
+      domain: '.harrydo.xyz',
+      path: '/',
+    });
+    response.clearCookie('refreshToken', {
+      domain: '.harrydo.xyz',
+      path: '/',
+    });
     return {
       message: 'Logged out successfully',
     };

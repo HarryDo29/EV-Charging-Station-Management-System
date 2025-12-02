@@ -53,14 +53,16 @@ export class GoogleController {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: '.harydo.xyz',
+      domain: '.harrydo.xyz',
+      path: '/',
       expires: new Date(Date.now() + 15 * 60 * 1000), // 15 mins
     });
     response.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
-      domain: '.harydo.xyz',
+      domain: '.harrydo.xyz',
+      path: '/',
       expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     });
     response.redirect(this.configService.get<string>('FRONTEND_URL')!);
