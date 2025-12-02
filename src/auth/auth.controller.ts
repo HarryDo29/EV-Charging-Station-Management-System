@@ -140,7 +140,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @Post('/change-password')
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Change account password' })
+  @ApiOperation({ summary: 'Change account password ...' })
   @ApiResponse({ status: 200, description: 'Password changed successfully' })
   @ApiResponse({
     status: 400,
