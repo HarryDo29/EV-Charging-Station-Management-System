@@ -52,6 +52,8 @@ export class AuthController {
   ): Promise<UserResponseDto> {
     const { userResponse, accessToken, refreshToken } =
       await this.authService.registerByEmail(registerDto);
+    console.log('accessToken', accessToken);
+    console.log('refreshToken', refreshToken);
     response.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -81,6 +83,8 @@ export class AuthController {
   ): Promise<UserResponseDto> {
     const { userResponse, accessToken, refreshToken } =
       await this.authService.loginByEmail(loginDto);
+    console.log('accessToken', accessToken);
+    console.log('refreshToken', refreshToken);
     response.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
