@@ -16,6 +16,7 @@ import { RefreshTokenEntity } from 'src/refreshToken/entity/refreshToken.entity'
 import { TransactionEntity } from 'src/transaction/entity/transaction.entity';
 import { StationEntity } from 'src/station/entity/station.entity';
 // import { MailModule } from 'src/mail/mail.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { StationEntity } from 'src/station/entity/station.entity';
     JwtModule,
     RedisModule,
     RefreshTokenModule,
+    ConfigModule,
     // MailModule,
   ],
   providers: [OAuth2Strategy, AuthService, AccountService /* MailService */],

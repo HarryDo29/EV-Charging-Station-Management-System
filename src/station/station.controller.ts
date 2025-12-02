@@ -9,7 +9,14 @@ import {
   Query,
 } from '@nestjs/common';
 import { Body } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { StationService } from './station.service';
 import { ChargePointService } from './charge_point.service';
 import { CreateStationDto } from './dto/station/createStation.dto';
@@ -37,7 +44,6 @@ export class StationController {
   ) {}
 
   //___________________________________________STATION___________________________________________
-  
   @Post('')
   @UseGuards(AuthGuard('jwt'))
   @Roles(Role.ADMIN)
@@ -53,19 +59,45 @@ export class StationController {
   }
 
   @Get('')
-  @ApiOperation({ summary: 'Get all charging stations (optionally sorted by distance)' })
-  @ApiQuery({ name: 'latitude', required: false, description: 'User latitude for distance sorting' })
-  @ApiQuery({ name: 'longitude', required: false, description: 'User longitude for distance sorting' })
-  @ApiResponse({ status: 200, description: 'List of stations retrieved successfully' })
+  @ApiOperation({
+    summary: 'Get all charging stations (optionally sorted by distance)',
+  })
+  @ApiQuery({
+    name: 'latitude',
+    required: false,
+    description: 'User latitude for distance sorting',
+  })
+  @ApiQuery({
+    name: 'longitude',
+    required: false,
+    description: 'User longitude for distance sorting',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of stations retrieved successfully',
+  })
   async getAllStationsWithoutLocation() {
     return await this.stationService.getAllStations();
   }
 
   @Get('/sorted')
-  @ApiOperation({ summary: 'Get all stations sorted by distance from user location' })
-  @ApiQuery({ name: 'latitude', required: true, description: 'User latitude' })
-  @ApiQuery({ name: 'longitude', required: true, description: 'User longitude' })
-  @ApiResponse({ status: 200, description: 'Sorted list of stations retrieved successfully' })
+  @ApiOperation({
+    summary: 'Get all stations sorted by distance from user location',
+  })
+  @ApiQuery({
+    name: 'latitude',
+    required: true,
+    description: 'User latitude',
+  })
+  @ApiQuery({
+    name: 'longitude',
+    required: true,
+    description: 'User longitude',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Sorted list of stations retrieved successfully',
+  })
   async getStationsSorted(
     @Query('latitude') latitude: string,
     @Query('longitude') longitude: string,
@@ -76,10 +108,19 @@ export class StationController {
   }
 
   @Get('')
-  @ApiOperation({ summary: 'Get all stations (with optional location sorting)' })
+  @ApiOperation({
+    summary: 'Get all stations (with optional location sorting)',
+  })
   @ApiQuery({ name: 'latitude', required: false, description: 'User latitude' })
-  @ApiQuery({ name: 'longitude', required: false, description: 'User longitude' })
-  @ApiResponse({ status: 200, description: 'List of stations retrieved successfully' })
+  @ApiQuery({
+    name: 'longitude',
+    required: false,
+    description: 'User longitude',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of stations retrieved successfully',
+  })
   async getAllStations(
     @Query('latitude') latitude?: string,
     @Query('longitude') longitude?: string,
@@ -92,7 +133,10 @@ export class StationController {
   @Get('/:id')
   @ApiOperation({ summary: 'Get station details by ID' })
   @ApiParam({ name: 'id', description: 'Station ID' })
-  @ApiResponse({ status: 200, description: 'Station details retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Station details retrieved successfully',
+  })
   @ApiResponse({ status: 404, description: 'Station not found' })
   async getStationById(@Param('id') id: string) {
     return await this.stationService.getStationById(id);
@@ -118,21 +162,29 @@ export class StationController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update station status (Admin/Staff only)' })
   @ApiParam({ name: 'id', description: 'Station ID' })
-  @ApiResponse({ status: 200, description: 'Station status updated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Station status updated successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Admin/Staff role required' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin/Staff role required',
+  })
   @ApiResponse({ status: 404, description: 'Station not found' })
   updateStationStatus(@Param('id') id: string, @Body() status: StationStatus) {
     return this.stationService.updateStationStatus(id, status);
   }
 
   //___________________________________________CHARGE-POINT___________________________________________
-  
   @Post('/create-charge-points')
   // @UseGuards(AuthGuard('jwt'))
   // @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Create multiple charge points' })
-  @ApiResponse({ status: 201, description: 'Charge points created successfully' })
+  @ApiResponse({
+    status: 201,
+    description: 'Charge points created successfully',
+  })
   @ApiResponse({ status: 400, description: 'Invalid charge point data' })
   createChargePoints(@Body() chargePoints: CreateChargePointDto[]) {
     return this.chargePointService.createChargePoints(chargePoints);
@@ -143,7 +195,10 @@ export class StationController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all charge points at a station' })
   @ApiParam({ name: 'stationId', description: 'Station ID' })
-  @ApiResponse({ status: 200, description: 'List of charge points retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of charge points retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Station not found' })
   getChargePointsByStationId(@Param('stationId') stationId: string) {
@@ -157,9 +212,15 @@ export class StationController {
   @ApiOperation({ summary: 'Update charge point information (Admin only)' })
   @ApiParam({ name: 'stationId', description: 'Station ID' })
   @ApiParam({ name: 'identifier', description: 'Charge point identifier' })
-  @ApiResponse({ status: 200, description: 'Charge point updated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Charge point updated successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Admin role required' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin role required',
+  })
   @ApiResponse({ status: 404, description: 'Charge point not found' })
   updateChargePoint(
     @Param('stationId') stationId: string,
@@ -180,9 +241,15 @@ export class StationController {
   @ApiOperation({ summary: 'Update charge point status (Admin/Staff only)' })
   @ApiParam({ name: 'stationId', description: 'Station ID' })
   @ApiParam({ name: 'identifier', description: 'Charge point identifier' })
-  @ApiResponse({ status: 200, description: 'Charge point status updated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Charge point status updated successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden - Admin/Staff role required' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin/Staff role required',
+  })
   @ApiResponse({ status: 404, description: 'Charge point not found' })
   updateChargePointStatus(
     @Param('stationId') stationId: string,
@@ -197,15 +264,24 @@ export class StationController {
   }
 
   //______________________________________________RESERVATION_____________________________________________
-  
+
   @Post('/reservation')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a charging reservation' })
-  @ApiResponse({ status: 201, description: 'Reservation created successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid reservation data or time slot not available' })
+  @ApiResponse({
+    status: 201,
+    description: 'Reservation created successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid reservation data or time slot not available',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'Charge point or vehicle not found' })
+  @ApiResponse({
+    status: 404,
+    description: 'Charge point or vehicle not found',
+  })
   createReservation(
     @Req() req: RequestExpress,
     @Body() createReservation: CreateReservationDto,
@@ -217,9 +293,14 @@ export class StationController {
   @Get('/reservation/:chargePointId')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get reservations for a charge point for the current week' })
+  @ApiOperation({
+    summary: 'Get reservations for a charge point for the current week',
+  })
   @ApiParam({ name: 'chargePointId', description: 'Charge point ID' })
-  @ApiResponse({ status: 200, description: 'Reservations retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Reservations retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Charge point not found' })
   getReservationOfWeek(@Param('chargePointId') chargePointId: string) {
@@ -228,13 +309,18 @@ export class StationController {
   }
 
   //___________________________________________CHARGING-SESSION___________________________________________
-  
   @Post('/charging-session/start')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Start a charging session' })
-  @ApiResponse({ status: 201, description: 'Charging session started successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid data or reservation not found' })
+  @ApiResponse({
+    status: 201,
+    description: 'Charging session started successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid data or reservation not found',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Reservation not found' })
   startCharging(@Body() body: CreateChargingSessionDto) {
@@ -245,7 +331,10 @@ export class StationController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'End a charging session' })
-  @ApiResponse({ status: 200, description: 'Charging session ended successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Charging session ended successfully',
+  })
   @ApiResponse({ status: 400, description: 'Invalid data' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Charging session not found' })

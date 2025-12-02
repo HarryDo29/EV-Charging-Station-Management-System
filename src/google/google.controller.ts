@@ -12,11 +12,15 @@ import type {
 } from 'express';
 import { AuthService } from 'src/auth/auth.service';
 import { UserResponseDto } from 'src/account/dto/userResponse.dto';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('Google OAuth2')
 @Controller('google')
 export class GoogleController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Get('/redirect')
   @UseGuards(AuthGuard('google'))
@@ -53,6 +57,6 @@ export class GoogleController {
       httpOnly: true,
       expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
     });
-    response.redirect('http://localhost:5173/');
+    response.redirect(this.configService.get<string>('FRONTEND_URL')!);
   }
 }
