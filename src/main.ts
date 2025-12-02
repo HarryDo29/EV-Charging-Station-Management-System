@@ -37,7 +37,7 @@ async function bootstrap() {
       origin: [
         'http://localhost:5173',
         'https://accounts.google.com',
-        'https://harydo.xyz',
+        'https://harrydo.xyz',
       ],
       credentials: true,
     }),
